@@ -2,7 +2,7 @@
 #__coding:utf-8 __
 '''
 Baidu Tieba download module.
-Version:1.1
+Version:1.2
 Last Edit:2018.12.01
 
 fllowed GPL license.
@@ -30,11 +30,14 @@ class therad():
                     pass
                 else:
                     therad_read = url.urlopen(therad)
-            except ure as status:
-                Avalon.warning("Access Tieba Error!Please Check the link you input!Error Reason:\n%s" % (str(status)))
+            except ure.URLError as status:
+                Avalon.warning("Access Tieba Error!Please Check the link you input!Error Reason:\n%s" % (str(status.reason)))
+                pass
+            except ure.HTTPError as status:
+                Avalon.warning("Access Tieba Error!Please Check the link you input!Error Reason:\n%s" % (str(status.reason)))
                 pass
             except:
-                print("Unkonwn Error!")
+                Avalon.warning("Unknown Error!")
                 pass
             else:
                 break

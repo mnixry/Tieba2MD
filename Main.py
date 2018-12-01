@@ -1,7 +1,7 @@
 #/usr/local/env python3
 #__coding:utf-8 __
 '''
-Baidu Tieba Main Program.
+Baidu Tieba Downloader Main Program.
 
 fllowed GPL license.
 '''
@@ -34,12 +34,24 @@ else:
     therad_link = 'https://tieba.baidu.com/p/%s?pn=' % (pid)
     Avalon.info('Mode:Download all')
 
-file = open('test.md','a+',1,'utf-8')
+while True:
+    filename = Avalon.gets('Please input filename/filepath and filename!')
+    if filename.split('.')[-1] != 'md':
+        Avalon.warning('Filename Error!')
+    try:
+        file = open('test.md','w+',1,'utf-8')
+    except:
+        Avalon.warning('Filename Error!')
+        pass
+    else:
+        break
 
 for page_number in range(1,therad.page_num(therad.get(therad_link + '1'))):
     Avalon.time_info('Start Page ' + str(page_number))
     raw = therad.get(therad_link + str(page_number))
     for per_floor in therad.proccess(raw):
         #print(per_floor)
-        Avalon.info('Start Floor ' + str(per_floor['floor']))
         file.write(Markdown.convert(per_floor))
+    #print('\n')
+
+file.close()
