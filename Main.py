@@ -37,9 +37,9 @@ else:
 file = open('test.md','a+',1,'utf-8')
 
 for page_number in range(1,therad.page_num(therad.get(therad_link + '1'))):
-    Avalon.info('Start Page ' + str(page_number))
+    Avalon.time_info('Start Page ' + str(page_number))
     raw = therad.get(therad_link + str(page_number))
     for per_floor in therad.proccess(raw):
-        print(per_floor)
+        #print(per_floor)
         Avalon.info('Start Floor ' + str(per_floor['floor']))
         file.write(Markdown.convert(per_floor))

@@ -9,8 +9,8 @@ followed GPL license
 import html,json,re,time,os
 from lxml import etree
 
-div_tag = re.compile('<\s*div[^>]*>[^<]*')
-a_tag = re.compile('<\s*a[^>]*>[^<]*')
+div_tag = re.compile('<div[^>]*>')
+a_tag = re.compile('<a[^>]*>')
 br_tag = re.compile('<br\s*?/?>')
 img_tag = re.compile('')
 
@@ -23,7 +23,8 @@ class Markdown():
             pass
 
         html_res = div_tag.sub('',res_dict['text'])
-        html_res = html_res.replace('</div>','',1)
+        html_res = '<a></a>' + html_res
+        html_res = html_res.replace('</div>','')
         html_res = br_tag.sub('\n',html_res)
         html_res = a_tag.sub('',html_res)
         html_res = html_res.replace('</a>','')
