@@ -14,7 +14,7 @@ import os
 #Test line
 
 while True:
-    link = Avalon.gets('Please input Link:')
+    link = Avalon.gets('Please input Link:\n[?]:')
     try:
         pid = int((link.split('/'))[-1].split('?')[0])
     except:
@@ -35,7 +35,7 @@ else:
     Avalon.info('Mode:Download all')
 
 while True:
-    filename = Avalon.gets('Please input filename/filepath and filename!')
+    filename = Avalon.gets('Please input filename/filepath and filename:\n[?]:')
     if filename.split('.')[-1] != 'md':
         Avalon.warning('Filename Error!')
     try:
@@ -46,7 +46,7 @@ while True:
     else:
         break
 
-for page_number in range(1,therad.page_num(therad.get(therad_link + '1'))):
+for page_number in range(1,therad.page_num(therad.get(therad_link + '1')) + 1):
     Avalon.time_info('Start Page ' + str(page_number))
     raw = therad.get(therad_link + str(page_number))
     for per_floor in therad.proccess(raw):

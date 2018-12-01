@@ -29,10 +29,11 @@ class Markdown():
 
         text_html = text_html.replace('            ','',1)
 
-        for a in res_html.xpath('.//a[@href]'):
+        for a in res_html.xpath('//a[@href]'):
             string = html.unescape(etree.tostring(a).decode())
             string = string.split('</a>',1)[0] + '</a>'
-            text_html = text_html.replace(string,a.text)
+            if a.text != None:
+                text_html = text_html.replace(string,a.text)
 
         for img in res_html.xpath('//img[@class="BDE_Image"]'):
             string = html.unescape(etree.tostring(img).decode())
