@@ -29,7 +29,3 @@ pip install lxml
 - Database Write&Read
 
 - Bug Fixes
-
-## Release Notes
-### 1.0
->The First Version with many bugs
