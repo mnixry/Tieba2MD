@@ -144,7 +144,7 @@ class Avalon:
                 elif ans[0].upper() == 'Y':
                     return True
                 else:
-                    Avalon.error('Invalid Input!')
+                    Avalon.warning('Invalid Input!')
         elif default is True:
             while True:
                 ans = Avalon.gets(msg + ' [Y/n]: ')
@@ -153,6 +153,6 @@ class Avalon:
                 elif ans[0].upper() == 'N':
                     return False
                 else:
-                    Avalon.error('Invalid Input!')
+                    Avalon.warning('Invalid Input!')
         else:
             raise TypeError('invalid type for positional argument: \' default\'')

@@ -1,9 +1,9 @@
 #/usr/local/env python3
 #__coding:utf-8 __
 '''
-Baidu Tieba download & Proccess module.
-Version:1.0
-Last Edit:2018.11.28
+Baidu Tieba download module.
+Version:1.1
+Last Edit:2018.12.01
 
 fllowed GPL license.
 '''
@@ -40,7 +40,19 @@ class therad():
                 break
         return(therad_read.read().decode())
 
-    def floor_num(raw):
+    def get_image(link):
+        while True:
+            try:
+                image = url.Request(link)
+                image.add_header('User-Agent',(random.choice(user_agent)).replace('\n',''))
+                image.add_header('Referer','https://tieba.baidu.com')
+                image_read = url.urlopen(image)
+            except:
+                pass
+            else:
+                return(image_read.read())
+
+    def page_num(raw):
         floor_get = etree.HTML(raw)
         floor_xpath = floor_get.xpath('//div[@class="pb_footer"]//li[@class="l_reply_num"]//input/@max-page')
         return(int(floor_xpath[0]))
