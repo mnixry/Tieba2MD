@@ -53,7 +53,7 @@ class therad():
             except:
                 pass
             else:
-                return(image_read.read())
+                return(html.unescape(image_read.read()))
 
     def page_num(raw):
         floor_get = etree.HTML(raw)
