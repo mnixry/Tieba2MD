@@ -58,7 +58,10 @@ class posts():
     def page_num(raw):
         floor_get = etree.HTML(raw)
         floor_xpath = floor_get.xpath('//div[@class="pb_footer"]//li[@class="l_reply_num"]//input/@max-page')
-        return(int(floor_xpath[0]))
+        if floor_xpath != []:
+            return(int(floor_xpath[0]))
+        else:
+            return(0)
 
     def proccess(raw):
         therad_list = etree.HTML(raw)
