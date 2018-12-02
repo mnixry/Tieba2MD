@@ -1,31 +1,27 @@
-# Tieba2MD
+<center><h1>Tieba2MD</h1></center>
+<center><b>百度贴吧→本地Markdown</b></center>
 
-## Introduction
+## 我是谁？
+一个简单的爬虫，能够帮准将百度贴吧的帖子转换为Markdown格式
 
-The simply Downloader of Baidu Tieba's posts,and convert it into Markdown(with some html).
+## 我要做什么？
+近些年来,百度贴吧的环境变得越来越差，很多珍贵的帖子由于管理不善或贴吧抽风等原因付之一炬
+现在Tieba2MD的出现可以帮助你备份任何百度贴吧中的帖子到本地Markdown格式
 
-## Why does it appear
-In recent years, the environment of Baidu Tieba has become worse and worse, and it is necessary to back up some of the precious posts. And this software is designed to solve this problem.
+**请记住！这不是用来进行侵权活动的便利工具！**
 
-**Please note: This is not a tool for illegal copying!**
+## 我需要什么？
 
-## Requirements
+将本仓库克隆到本地目录
+请依次执行以下代码，之后运行目录中的“main.py”
+理论上兼容所有的Python3版本，但是Python3.6应该是与本程序兼容性最强的
 
 ```shell
-git clone https://github.com/mnixry/Tieba2MD.git
 pip install lxml
 ```
 
-## The Feature will in New Version
-- More Faster Download
-    - Multi-Therad Download
-    - Faster Proccessing
-    - Better Error handling
+## 我从哪里来？
 
-- Graph Bed Automatic upload
-    - Auto download and upload images to Graph Bed
-    - Seletable Image Upload way
-
-- Database Write&Read
-
-- Bug Fixes
+>作者：`mnixry`
+使用了`avalon_framework`作为内置框架来进行更加美观的消息提示
+本程序遵守`GPL-3.0`协议
