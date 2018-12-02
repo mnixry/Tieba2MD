@@ -39,7 +39,7 @@ while True:
     if filename.split('.')[-1] != 'md':
         Avalon.warning('Filename Error!')
     try:
-        file = open('test.md','w+',1,'utf-8')
+        file = open(filename,'w+',1,'utf-8')
     except:
         Avalon.warning('Filename Error!')
         pass

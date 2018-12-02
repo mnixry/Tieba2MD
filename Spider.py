@@ -53,7 +53,7 @@ class posts():
             except:
                 pass
             else:
-                return(html.unescape(image_read.read()))
+                return(image_read.read())
 
     def page_num(raw):
         floor_get = etree.HTML(raw)
