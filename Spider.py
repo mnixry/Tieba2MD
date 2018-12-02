@@ -16,7 +16,7 @@ import os,time,json,random,html
 ua = open('user-agents.txt','rt',1,'utf-8','ignore')#user agents get(Please make sure user-agents.txt exist!)
 user_agent = ua.readlines()
 
-class therad():
+class posts():
     
     def get(link):
         while True:#The long while untill the resource got

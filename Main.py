@@ -46,10 +46,10 @@ while True:
     else:
         break
 
-for page_number in range(1,therad.page_num(therad.get(therad_link + '1')) + 1):
+for page_number in range(1,posts.page_num(posts.get(therad_link + '1')) + 1):
     Avalon.time_info('Start Page ' + str(page_number))
-    raw = therad.get(therad_link + str(page_number))
-    for per_floor in therad.proccess(raw):
+    raw = posts.get(therad_link + str(page_number))
+    for per_floor in posts.proccess(raw):
         #print(per_floor)
         file.write(Markdown.convert(per_floor))
     #print('\n')
