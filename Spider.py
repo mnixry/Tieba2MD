@@ -42,18 +42,6 @@ class posts():
                 break
         return(therad_read.read().decode())
 
-    def get_image(link):#图片下载函数，逻辑同get函数
-        while True:
-            try:
-                image = url.Request(link)
-                image.add_header('User-Agent',(random.choice(user_agent)).replace('\n',''))
-                image.add_header('Referer','https://tieba.baidu.com')
-                image_read = url.urlopen(image)
-            except:
-                pass
-            else:
-                return(image_read.read())
-
     def page_num(raw):#从html源文件中选取总计页数
         floor_get = etree.HTML(raw)
         floor_xpath = floor_get.xpath('//div[@class="pb_footer"]//li[@class="l_reply_num"]//input/@max-page')

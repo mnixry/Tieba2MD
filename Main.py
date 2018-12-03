@@ -30,10 +30,10 @@ see_lz = Avalon.ask('只看楼主？',True)
 
 if see_lz:
     therad_link = 'https://tieba.baidu.com/p/%s?see_lz=1&pn=' % (pid)
-    Avalon.info('Mode:Only Download Floor Owner')
+    Avalon.info('模式:只看楼主')
 else:
     therad_link = 'https://tieba.baidu.com/p/%s?pn=' % (pid)
-    Avalon.info('Mode:Download all')
+    Avalon.info('模式:全部')
 
 while True:
     filename = Avalon.gets('请输入要保存的文件名或目录+文件名，文件名必须以.md为后缀:\n[?]:')
