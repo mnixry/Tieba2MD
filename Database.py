@@ -26,7 +26,7 @@ class database():
         return(id)
 
     def post_read(page_num):
-        res = db.execute('''SELECT RES FROM RES WHERE PN == ?;''',page_num)[0]
+        res = db.execute('''SELECT RES FROM RES WHERE PN=?;''',page_num)[0]
         return(res)
 
     def image_write(raw,link):
@@ -34,3 +34,16 @@ class database():
         db.commit()
         id = db.execute('''SELECT ID FROM IMAGES;''')[-1]
         return(id)
+
+    def imageRead_id(id):
+        raw = db.execute('''SELECT IMG FROM IMAGES WHERE ID=?;''',int(id))[0]
+        return(raw)
+
+    def imageRead_link(originLink):
+        raw = db.execute('''SELECT IMG FROM IMAGES WHERE ORIGIN=?;''',str(originLink))[0]
+        return(raw)
+
+    def imageLinkUpdate(originLink,newLink):
+        db.execute('''UPDATE IMAGES SET NEW = ? WHERE ORIGIN=?;''',(str(newLink),str(originLink)))
+        db.commit()
+        return(db.total_changes)
