@@ -21,8 +21,8 @@ class image():
                 imageRequest.add_header('User-Agent',(random.choice(_userAgent)).replace('\n',''))
                 imageRequest.add_header('Referer','https://tieba.baidu.com')
                 imageRead = request.urlopen(imageRequest)
-            except:
-                pass
+            except error.URLError as e:
+                Avalon.warning('图片上传错误!原因:%s' % (str(e)))
             else:
                 break
         return(imageRead.read())
@@ -40,11 +40,11 @@ class image():
                 postRequest.add_header('User-Agent',(random.choice(_userAgent)).replace('\n',''))
                 readRes = request.urlopen(postRequest)
             except error.URLError as e:
-                Avalon.warning('获取图片出错!原因:%s' % (str(e)))
+                Avalon.warning('图片上传出错!原因:%s' % (str(e)))
             else:
                 readDict = json.load(readRes)
                 if readDict['code'] == '1':
                     break
                 else:
-                    Avalon.warning('获取图片出错!原因:%s' % (str(readDict['msg'])))
+                    Avalon.warning('图片上传出错!原因:%s' % (str(readDict['msg'])))
         return(str(readDict['img']))

@@ -5,6 +5,7 @@
 
 遵守GPL协议，侵权必究
 '''
+
 from Markdown import markdown
 from Spider import posts
 from avalon_framework import Avalon
@@ -43,7 +44,7 @@ while True:
     try:
         file = open(fileName,'w+',1,'utf-8')
     except:
-        Avalon.warning('文件错误！')
+        Avalon.warning('文件错误!')
     else:
         break
 

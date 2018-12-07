@@ -29,12 +29,8 @@ class posts():
                 else:
                     postRead = request.urlopen(postRequest)
             #错误处理
-            except error.URLError as status:
-                Avalon.warning("Access Tieba Error!Please Check the link you input!Error Reason:\n%s" % (str(status.reason)))
-            except error.HTTPError as status:
-                Avalon.warning("Access Tieba Error!Please Check the link you input!Error Reason:\n%s" % (str(status.reason)))
-            except:
-                Avalon.warning("Unknown Error!")
+            except error.URLError as e:
+                Avalon.warning("访问失败!原因:%s" % (str(e)))
             #没有错误，结束循环
             else:
                 break

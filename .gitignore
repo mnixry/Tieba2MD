@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+.vscode/
 *.py[cod]
 *$py.class
 
@@ -104,3 +105,4 @@ venv.bak/
 .mypy_cache/
 test.md
 Database.db
+.vscode/settings.json
