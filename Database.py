@@ -12,38 +12,38 @@ import os,random,time,html
 if os.path.isfile('Database.db'):
     os.remove('Database.db')
 
-db = sql.connect('Database.db')
-db.execute('''CREATE TABLE RES(ID INT PRIMARY KEY NOT NULL,PN INT NOT NULL,RES BLOB NOT NULL);''')
-db.execute('''CREATE TABLE IMAGES(ID INT PRIMARY KEY NOT NULL,ORIGIN TEXT NOT NULL,IMG BLOB NOT NULL,NEW TEXT);''')
-db.commit()
+_db = sql.connect('Database.db')
+_db.execute('''CREATE TABLE RES(ID INT PRIMARY KEY NOT NULL,PN INT NOT NULL,RES BLOB NOT NULL);''')
+_db.execute('''CREATE TABLE IMAGES(ID INT PRIMARY KEY NOT NULL,ORIGIN TEXT NOT NULL,IMG BLOB NOT NULL,NEW TEXT);''')
+_db.commit()
 
 class database():
     
-    def post_write(raw,page_num):
-        db.execute('''INSERT INTO RES (PN,RES) VALUES (?,?);''',(page_num,raw))
-        db.commit()
-        id = db.execute('''SELECT ID FROM RES;''')[-1]
+    def postWrite(raw,pageNumber):
+        _db.execute('''INSERT INTO RES (PN,RES) VALUES (?,?);''',(pageNumber,raw))
+        _db.commit()
+        id = _db.execute('''SELECT ID FROM RES;''')[-1]
         return(id)
 
-    def post_read(page_num):
-        res = db.execute('''SELECT RES FROM RES WHERE PN=?;''',page_num)[0]
+    def postRead(pageNumber):
+        res = _db.execute('''SELECT RES FROM RES WHERE PN=?;''',pageNumber)[0]
         return(res)
 
-    def image_write(raw,link):
-        db.execute('''INSERT INTO IMAGES (LINK,RES) VALUES (?,?);''',(link,raw))
-        db.commit()
-        id = db.execute('''SELECT ID FROM IMAGES;''')[-1]
+    def imageWrite(raw,link):
+        _db.execute('''INSERT INTO IMAGES (LINK,RES) VALUES (?,?);''',(link,raw))
+        _db.commit()
+        id = _db.execute('''SELECT ID FROM IMAGES;''')[-1]
         return(id)
 
     def imageRead_id(id):
-        raw = db.execute('''SELECT IMG FROM IMAGES WHERE ID=?;''',int(id))[0]
+        raw = _db.execute('''SELECT IMG FROM IMAGES WHERE ID=?;''',int(id))[0]
         return(raw)
 
     def imageRead_link(originLink):
-        raw = db.execute('''SELECT IMG FROM IMAGES WHERE ORIGIN=?;''',str(originLink))[0]
+        raw = _db.execute('''SELECT IMG FROM IMAGES WHERE ORIGIN=?;''',str(originLink))[0]
         return(raw)
 
     def imageLinkUpdate(originLink,newLink):
-        db.execute('''UPDATE IMAGES SET NEW = ? WHERE ORIGIN=?;''',(str(newLink),str(originLink)))
-        db.commit()
-        return(db.total_changes)
+        _db.execute('''UPDATE IMAGES SET NEW = ? WHERE ORIGIN=?;''',(str(newLink),str(originLink)))
+        _db.commit()
+        return(_db.total_changes)

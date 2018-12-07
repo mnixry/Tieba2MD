@@ -5,9 +5,9 @@
 
 遵守GPL协议，侵权必究
 '''
-from Markdown import *
-from Spider import *
-from avalon_framework import *
+from Markdown import markdown
+from Spider import posts
+from avalon_framework import Avalon
 import os
 
 #现在写在这里的所有代码都只是临时解决方案
@@ -17,43 +17,42 @@ import os
 while True:
     link = Avalon.gets('请输入帖子链接:\n[?]:')
     try:
-        pid = int((link.split('/'))[-1].split('?')[0])
+        postID = int((link.split('/'))[-1].split('?')[0])
     except:
         Avalon.warning('输入错误！')
         pass
     else:
-        pid = str(pid)
-        Avalon.info('帖子ID:' + pid)
+        postID = str(postID)
+        Avalon.info('帖子ID:' + postID)
         break
 
-see_lz = Avalon.ask('只看楼主？',True)
+OnlySeeLZ = Avalon.ask('只看楼主？',True)
 
 if see_lz:
-    therad_link = 'https://tieba.baidu.com/p/%s?see_lz=1&pn=' % (pid)
+    postLink = 'https://tieba.baidu.com/p/%s?see_lz=1&pn=' % (postID)
     Avalon.info('模式:只看楼主')
 else:
-    therad_link = 'https://tieba.baidu.com/p/%s?pn=' % (pid)
+    postLink = 'https://tieba.baidu.com/p/%s?pn=' % (postID)
     Avalon.info('模式:全部')
 
 while True:
-    filename = Avalon.gets('请输入要保存的文件名或目录+文件名，文件名必须以.md为后缀:\n[?]:')
-    if filename.split('.')[-1] != 'md':
+    fileName = Avalon.gets('请输入要保存的文件名或目录+文件名，文件名必须以.md为后缀:\n[?]:')
+    if fileName.split('.')[-1] != 'md':
         Avalon.warning('文件名错误！')
         pass
     try:
-        file = open(filename,'w+',1,'utf-8')
+        file = open(fileName,'w+',1,'utf-8')
     except:
         Avalon.warning('文件错误！')
-        pass
     else:
         break
 
 Avalon.info('程序启动……')
 
-for page_number in range(1,posts.page_num(posts.get(therad_link + '1')) + 1):
-    Avalon.time_info('开始进行第%s页' % (str(page_number)))
-    raw = posts.get(therad_link + str(page_number))
-    for per_floor in posts.proccess(raw):
-        file.write(Markdown.convert(per_floor))
+for pageNumber in range(1,posts.pageNumber(posts.getPost(postLink + '1')) + 1):
+    Avalon.time_info('开始进行第%s页' % (str(pageNumber)))
+    raw = posts.getPost(postLink + str(page_number))
+    for perFloor in posts.proccessPost(raw):
+        file.write(markdown.convert(perFloor))
 
 file.close()

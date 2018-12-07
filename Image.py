@@ -10,7 +10,7 @@ import base64,os,random,json
 from avalon_framework import Avalon
 from urllib import parse,request,error
 
-userAgent = (open('user-agents.txt','rt',1,'utf-8','ignore')).readlines()
+_userAgent = (open('user-agents.txt','rt',1,'utf-8','ignore')).readlines()
 
 class image():
     
@@ -18,7 +18,7 @@ class image():
         while True:
             try:
                 imageRequest = request.Request(link)
-                imageRequest.add_header('User-Agent',(random.choice(userAgent)).replace('\n',''))
+                imageRequest.add_header('User-Agent',(random.choice(_userAgent)).replace('\n',''))
                 imageRequest.add_header('Referer','https://tieba.baidu.com')
                 imageRead = request.urlopen(imageRequest)
             except:
@@ -37,7 +37,7 @@ class image():
         while True:
             try:
                 postRequest = request.Request('https://image.mnixry.cn/public/api',postData)
-                postRequest.add_header('User-Agent',(random.choice(userAgent)).replace('\n',''))
+                postRequest.add_header('User-Agent',(random.choice(_userAgent)).replace('\n',''))
                 readRes = request.urlopen(postRequest)
             except error.URLError as e:
                 Avalon.warning('获取图片出错!原因:%s' % (str(e)))
