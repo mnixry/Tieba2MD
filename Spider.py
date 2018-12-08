@@ -53,23 +53,19 @@ class posts():
         #如果你没有读过百度贴吧帖子的html源文件，那么你就不要往下看了
         #看了你也看不明白
         theradList = etree.HTML(raw)
-        theradList = theradList.xpath('//div[@class="l_post l_post_bright j_l_post clearfix  "]')
+        theradList = theradList.xpath('//div[@class="l_post j_l_post l_post_bright  "]')
         finalList = []
         for perFloor in theradList:
             floorDict = {}
-            for i in perFloor.xpath('.//span[@class="tail-info"]/text()'):
-                if i.find('楼') != -1:
-                    floorNum = int((i.replace('楼','')))
-            #在这里我发现一个非常严重的问题
-            #其实我们需要获取的所有数据都以json格式存在于“data-field”属性中
-            #而我在这里明显把它搞复杂了
-            #因为此代码现在还能够工作，而且效率预计相差不大
-            #所以不准备对这里进行修改（其实是懒）
-            #如果有能改的人，欢迎Pull request
-            author = (json.loads((perFloor.xpath('./@data-field'))[0]))['author']['user_name']
-            text = (perFloor.xpath('.//div[@class="d_post_content j_d_post_content "]'))[0]
+            #没问题了 
+            #不知为何，百度贴吧修改了代码
+            #如果在此版本放出后一个月内百度贴吧代码再次修改
+            #我会考虑将此项目闭源或者通过css分析元素(不会做,除非找到人帮我做,不然我只能选择闭源)
+            floorNum = json.loads(perFloor.xpath('./@data-field')[0])['content']['post_no']
+            author = json.loads(perFloor.xpath('./@data-field')[0])['author']['user_name']
+            text = perFloor.xpath('.//div[@class="d_post_content j_d_post_content  clearfix"]')[0]
             final_text = html.unescape(etree.tostring(text).decode())
-            floorDict['floor'] = floorNum
+            floorDict['floor'] = int(floorNum)
             floorDict['author'] = author
             floorDict['text'] = final_text
             finalList.append(floorDict)
