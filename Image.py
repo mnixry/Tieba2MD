@@ -20,12 +20,17 @@ class image():
                 imageRequest = request.Request(link)
                 imageRequest.add_header('User-Agent',(random.choice(_userAgent)).replace('\n',''))
                 imageRequest.add_header('Referer','https://tieba.baidu.com')
-                imageRead = request.urlopen(imageRequest)
+                imageRead = request.urlopen(imageRequest).read()
             except error.URLError as e:
                 Avalon.warning('图片上传错误!原因:%s' % (str(e)))
+            except KeyboardInterrupt:
+                Avalon.error("用户强制退出")
+                quit()
+            except:
+                Avalon.warning("出现未知错误!")
             else:
                 break
-        return(imageRead.read())
+        return(imageRead)
 
     def bedUpload(raw):
         postData = {}
@@ -38,11 +43,16 @@ class image():
             try:
                 postRequest = request.Request('https://image.mnixry.cn/public/api',postData)
                 postRequest.add_header('User-Agent',(random.choice(_userAgent)).replace('\n',''))
-                readRes = request.urlopen(postRequest)
+                readRes = request.urlopen(postRequest).read()
             except error.URLError as e:
                 Avalon.warning('图片上传出错!原因:%s' % (str(e)))
+            except KeyboardInterrupt:
+                Avalon.error("用户强制退出")
+                quit()
+            except:
+                Avalon.warning("出现未知错误!")
             else:
-                readDict = json.load(readRes)
+                readDict = json.loads(readRes.decode())
                 if readDict['code'] == '1':
                     break
                 else:

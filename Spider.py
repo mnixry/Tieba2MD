@@ -27,14 +27,19 @@ class posts():
                 except:
                     pass
                 else:
-                    postRead = request.urlopen(postRequest)
+                    postRead = request.urlopen(postRequest).read()
             #错误处理
             except error.URLError as e:
                 Avalon.warning("访问失败!原因:%s" % (str(e)))
+            except KeyboardInterrupt:
+                Avalon.error("用户强制退出")
+                quit()
+            except:
+                Avalon.warning("出现未知错误!")
             #没有错误，结束循环
             else:
                 break
-        return(postRead.read().decode())
+        return(postRead.decode())
 
     def pageNumber(raw):#从html源文件中选取总计页数
         floorGet = etree.HTML(raw)

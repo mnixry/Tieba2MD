@@ -48,8 +48,8 @@ class database():
         raw = cursor.execute('''SELECT IMG FROM IMAGES WHERE ORIGIN=?;''',str(originLink))[0]
         return(raw)
 
-    def imageLinkUpdate(originLink,newLink):
+    def imageLinkUpdate(id,newLink):
         cursor = _db.cursor()
-        cursor.execute('''UPDATE IMAGES SET NEW = ? WHERE ORIGIN=?;''',(str(newLink),str(originLink)))
+        cursor.execute('''UPDATE IMAGES SET NEW = ? WHERE ID=?;''',(str(newLink),int(id)))
         cursor.commit()
         return(_db.total_changes)

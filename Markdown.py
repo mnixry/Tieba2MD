@@ -1,7 +1,7 @@
 #/usr/local/env python3
 #__coding:utf-8 __
 '''
-Markdown转换模块（有奇怪的东西混进去了）
+Markdown转换模块
 
 遵守GPL协议，侵权必究
 '''

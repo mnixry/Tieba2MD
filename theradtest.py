@@ -1,86 +1,113 @@
 from avalon_framework import Avalon
-from Database import database
 from Spider import posts
-from Markdown import markdown
 from Image import image
-import os,queue,threading,_thread,time
+from Database import database
+from markdown import markdown
+import threading,queue,time,os
 
-exitFlag = 0
-queueLock = threading.Lock()
-workQueue = queue.Queue(4)
-theradList = ['1','2','3','4']
-therads = []
+postsGetExit = imagesGetExit = imagesUploadExit =False
+postsThreadList = imagesThreadList = imagesUpThreadList =[]
+postsQueueLock = imagesQueueLock = imagesUpQueueLock = threading.Lock()
+postsWorkQueue = imagesWorkQueue = imagesUpWorkQueue = queue.Queue(-1)
+threadNum = 4
 
-class postTherad(threading.Thread):
+class postsGetThread(threading.Thread):
     def __init__(self, id, q):
         threading.Thread.__init__(self)
         self.id = id
         self.q = q
+    
     def run(self):
-        Avalon.info('Start post thread %s.\n' % (str(self.id)))
-        getPost(self.id,self.q)
-        Avalon.info('Post thread %s stopped.\n' % (str(self.id)))
+        Avalon.info('Start Thread %s to get posts.' % (str(self.id)))
+        time.sleep(1)
+        behavior.postsGet(self.q,self.id)
+        time.sleep(1)
+        Avalon.info('Thread %s Ended.' % (str(self.id)))
 
-class imageTherad(threading.Thread):
-    def __init__(self, id, link):
+class imagesGetThread(threading.Thread):
+    def __init__(self, id, q):
         threading.Thread.__init__(self)
         self.id = id
-        self.link = link
+        self.q = q
+    
     def run(self):
-        Avalon.info('Start image thread %s.' % (str(self.id)))
-        getImage(self.id,self.q)
-        Avalon.info('Image thread %s stopped.' % (str(self.id)))
-
-def getPost(id,q):
-    while not exitFlag:
-        queueLock.acquire()
-        print('test')
-        if not workQueue.empty():
-            print('test2')
-            tid = id.get()
-            q = q.get()
-            link = q[0]
-            pageNumber = q[1]
-            queueLock.release()
-            Avalon.info('Therad No.%s Proccessing %s' % (str(tid),str(pageNumber)))
-            raw = posts.getPost(link)
-            database.postWrite(raw,pageNumber)
-        else:
-            print('test3')
-            queueLock.release()
+        Avalon.info('Start Thread %s to get images.' % (str(self.id)))
         time.sleep(1)
-
-def getImage(id,q):
-    while not exitFlag:
-        queueLock.acquire()
-        if not workQueue.empty():
-            link = q.get()
-            queueLock.release()
-            raw = image.get(link)
-            database.imageWrite(raw,link)
-        else:
-            queueLock.release()
+        behavior.imagesGet(self.q,self.id)
         time.sleep(1)
+        Avalon.info('Thread %s Ended.' % (str(self.id)))
 
-pagelink = []
-for pageNumber in range(1,posts.pageNumber(posts.getPost('https://tieba.baidu.com/p/3363856719?see_lz=1&pn=' + '1')) + 1):
-    link = 'https://tieba.baidu.com/p/3363856719?see_lz=1&pn=' + str(pageNumber)
-    pn = pageNumber
-    pagelink.append((link,pn))
+class imagesUploadThread(threading.Thread):
+    def __init__(self, id, q):
+        threading.Thread.__init__(self)
+        self.id = id
+        self.q = q
+    
+    def run(self):
+        Avalon.info('Start Thread %s to upload images.' % (str(self.id)))
+        time.sleep(1)
+        behavior.imagesUpload(self.q,self.id)
+        time.sleep(1)
+        Avalon.info('Thread %s Ended' % (str(self.id)))
 
-for theradID in theradList:
-    therad = postTherad(theradID,pagelink)
-    therad.start()
-    therads.append(therad)
+class behavior:
+    def postsGet(q,id):
+        while not postsGetExit:
+            postsQueueLock.acquire()
+            if not postsWorkQueue.empty():
+                data = q.get()
+                tid = id.get()
+                postsQueueLock.release()
+                Avalon.info('Thread %s start download page %s.' % (str(tid),str(data[1])))
+                time.sleep(1)
+                resource = posts.getPost(data[0])
+                database.postWrite(resource,data[1])
+            else:
+                postsQueueLock.release()
+            time.sleep(1)
+    
+    def imagesGet(q,id):
+        while not imagesGetExit:
+            imagesQueueLock.acquire()
+            if not imagesWorkQueue.empty():
+                data = q.get()
+                tid = id.get()
+                imagesQueueLock.release()
+                Avalon.info('Thread %s start download picture %s.' % (str(tid),str((data.spilt('/')[-1]))))
+                time.sleep(1)
+                resource = image.get(data)
+                database.imageWrite(resource,data)
+            else:
+                imagesQueueLock.release()
+            time.sleep(1)
+    
+    def imagesUpload(q,id):
+        while not imagesUploadExit:
+            imagesUpQueueLock.acquire()
+            if not imagesUpWorkQueue.empty():
+                data = int(q.get())
+                tid = id.get()
+                imagesUpQueueLock.release()
+                Avalon.info('Thread %s start upload picture(database ID:%s).' % (str(tid),str(data)))
+                time.sleep(1)
+                resource = database.imageRead_id(data)
+                link = image.bedUpload(resource)
+                database.imageLinkUpdate(data,link)
+            else:
+                imagesUpQueueLock.release()
+            time.sleep(1)
 
-queueLock.acquire()
-for q in pagelink:
-    workQueue.put(q)
-queueLock.release()
+for ThreadID in range(0,threadNum):
+    thread = postsGetThread(ThreadID + 1,postsWorkQueue)
+    thread.start()
+    postsThreadList.append(thread)
 
-while not workQueue.empty():
-    pass
-exitFlag = 1
+for ThreadID in range(0,threadNum):
+    thread = imagesGetThread(ThreadID + 1,postsWorkQueue)
+    thread.start()
+    imagesThreadList.append(thread)
 
-for t in therads:
-    t.join()
+for ThreadID in range(0,threadNum):
+    thread = imagesUploadThread(ThreadID + 1,postsWorkQueue)
+    thread.start()
+    imagesUpThreadList.append(thread)
