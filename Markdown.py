@@ -44,6 +44,5 @@ class markdown():
         textHTML = _divTag.sub('',textHTML)
         textHTML = textHTML.replace('</div>','')
         textHTML = _brTag.sub('\n',textHTML)
-        textHTML = finalMD = textHTML + lastInfo + '\n\n---\n\n'
-
-        return(finalMD)
+        
+        return(textHTML + lastInfo + '\n\n---\n\n')

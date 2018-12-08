@@ -5,7 +5,7 @@ from Markdown import markdown
 from Image import image
 import os,queue,threading,_thread,time
 
-exitFlag = False
+exitFlag = 0
 queueLock = threading.Lock()
 workQueue = queue.Queue(4)
 theradList = ['1','2','3','4']
@@ -34,7 +34,9 @@ class imageTherad(threading.Thread):
 def getPost(id,q):
     while not exitFlag:
         queueLock.acquire()
+        print('test')
         if not workQueue.empty():
+            print('test2')
             tid = id.get()
             q = q.get()
             link = q[0]
@@ -44,6 +46,7 @@ def getPost(id,q):
             raw = posts.getPost(link)
             database.postWrite(raw,pageNumber)
         else:
+            print('test3')
             queueLock.release()
         time.sleep(1)
 
@@ -77,7 +80,7 @@ queueLock.release()
 
 while not workQueue.empty():
     pass
-exitFlag = True
+exitFlag = 1
 
 for t in therads:
     t.join()

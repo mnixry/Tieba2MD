@@ -27,9 +27,9 @@ while True:
         Avalon.info('帖子ID:' + postID)
         break
 
-OnlySeeLZ = Avalon.ask('只看楼主？',True)
+onlySeeLZ = Avalon.ask('只看楼主？',True)
 
-if see_lz:
+if onlySeeLZ:
     postLink = 'https://tieba.baidu.com/p/%s?see_lz=1&pn=' % (postID)
     Avalon.info('模式:只看楼主')
 else:
@@ -52,7 +52,7 @@ Avalon.info('程序启动……')
 
 for pageNumber in range(1,posts.pageNumber(posts.getPost(postLink + '1')) + 1):
     Avalon.time_info('开始进行第%s页' % (str(pageNumber)))
-    raw = posts.getPost(postLink + str(page_number))
+    raw = posts.getPost(postLink + str(pageNumber))
     for perFloor in posts.proccessPost(raw):
         file.write(markdown.convert(perFloor))
 
