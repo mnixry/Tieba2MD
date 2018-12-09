@@ -93,40 +93,57 @@ class Avalon:
         RRV = '\033[27m'  # Reverse
         RHD = '\033[28m'  # Hidden
 
-    def info(msg, log=False):
-        print('{}[+] INFO: {}{}'.format(Avalon.FG.G, str(msg), Avalon.FM.RST))
+    def info(msg, log=False, highlight=False):
+        if highlight == True:
+            style = Avalon.FG.LG + Avalon.FM.BD
+        elif highlight == False:
+            style = Avalon.FG.G + Avalon.FM.BD
+        else:
+            raise TypeError('invalid type for positional argument: \' default\'')
+        sys.stdout.write('{}[INFO] {}{}\n'.format(style, str(msg), Avalon.FM.RST))
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_INFO, msg)
 
-    def time_info(msg, log=False):
+    def time_info(msg, log=False, highlight=False):
+        if highlight == True:
+            style = Avalon.FG.LG + Avalon.FM.BD
+        elif highlight == False:
+            style = Avalon.FG.G
+        else:
+            raise TypeError('invalid type for positional argument: \' default\'')
         import datetime
-        print('{}{}{} [+] INFO: {}{}'.format(Avalon.FM.RST, str(datetime.datetime.now()), Avalon.FG.G, str(msg), Avalon.FM.RST))
+        sys.stdout.write('{}[{}]{}[INFO] {}{}\n'.format(Avalon.FM.RST, str((datetime.datetime.now()).time()), style, str(msg), Avalon.FM.RST))
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_INFO, msg)
 
     def debug_info(msg, log=True):
         import datetime
-        print('{}{} [+] INFO: {}{}'.format(Avalon.FG.DGR, str(datetime.datetime.now()), str(msg), Avalon.FM.RST), file=sys.stderr)
+        sys.stdout.write('{}[{}][INFO] {}{}\n'.format(Avalon.FG.DGR, str((datetime.datetime.now()).time()), str(msg), Avalon.FM.RST))
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_DEBUG, msg)
 
     def warning(msg, log=True):
-        print('{}{}[!] WARNING: {}{}'.format(Avalon.FG.Y, Avalon.FM.BD, str(msg), Avalon.FM.RST), file=sys.stderr)
+        sys.stdout.write('{}{}[WARNING] {}{}\n'.format(Avalon.FG.Y, Avalon.FM.BD, str(msg), Avalon.FM.RST))
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_WARNING, msg)
 
     def error(msg, log=True):
-        print('{}{}[!] ERROR: {}{}'.format(Avalon.FG.R, Avalon.FM.BD, str(msg), Avalon.FM.RST), file=sys.stderr)
+        sys.stdout.write('{}{}[ERROR] {}{}\n'.format(Avalon.FG.R, Avalon.FM.BD, str(msg), Avalon.FM.RST))
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_WARNING, msg)
 
+    def critical(msg, log=True):
+            sys.stdout.write('{}{}[{}CRITICAL{}{1}{2}] {}{}\n'.format(Avalon.FG.R, Avalon.FM.BD, Avalon.BG.LR, Avalon.FM.RST,str(msg), Avalon.FM.RST))
+            if log and sys.platform != 'win32':
+                syslog.syslog(syslog.LOG_WARNING, msg)
+
     def debug(msg, log=True):
-        print('{}{}[*] DBG: {}{}'.format(Avalon.FG.R, Avalon.FM.RDM, str(msg), Avalon.FM.RST), file=sys.stderr)
+        sys.stdout.write('{}{}[DEBUG] {}{}\n'.format(Avalon.FG.R, Avalon.FM.RDM, str(msg), Avalon.FM.RST))
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_DEBUG, msg)
 
     def gets(msg):
-        print('{}{}[?] USER: {}{}'.format(Avalon.FG.Y, Avalon.FM.BD, msg, Avalon.FM.RST), end='')
+        sys.stdout.write('{}{}[USER]:{}{}'.format(Avalon.FG.Y, Avalon.FM.BD, msg, Avalon.FM.RST))
         return input()
 
     def ask(msg, default=False):

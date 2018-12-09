@@ -31,10 +31,10 @@ onlySeeLZ = Avalon.ask('只看楼主？',True)
 
 if onlySeeLZ:
     postLink = 'https://tieba.baidu.com/p/%s?see_lz=1&pn=' % (postID)
-    Avalon.info('模式:只看楼主')
+    Avalon.info('模式:只看楼主',highlight=True)
 else:
     postLink = 'https://tieba.baidu.com/p/%s?pn=' % (postID)
-    Avalon.info('模式:全部')
+    Avalon.info('模式:全部',highlight=True)
 
 while True:
     fileName = Avalon.gets('请输入要保存的文件名或目录+文件名，文件名必须以.md为后缀:\n[?]:')
@@ -48,7 +48,7 @@ while True:
     else:
         break
 
-Avalon.info('程序启动……')
+Avalon.info('程序启动……',highlight=True)
 
 for pageNumber in range(1,posts.pageNumber(posts.getPost(postLink + '1')) + 1):
     Avalon.time_info('开始进行第%s页' % (str(pageNumber)))

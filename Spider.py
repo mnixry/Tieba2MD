@@ -11,6 +11,12 @@ from avalon_framework import Avalon
 from urllib import request,error
 import os,time,json,random,html
 
+
+'''
+今天看百度贴吧，发现百度贴吧不同时间发出的贴的class属性各不相同
+这样的话我只能提前上CSS分析了啊
+我看看能不能找到别的大佬问一下解决方案
+'''
 #User-Agent获取，请确保“user-agents.txt”存在！
 _userAgent = (open('user-agents.txt','rt',1,'utf-8','ignore')).readlines()
 
