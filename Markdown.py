@@ -16,8 +16,10 @@ _divTag = re.compile('<div[^>]*>')
 _brTag = re.compile('<br\s*?/?>')
 
 class markdown():
+    def __init__(self):
+        Avalon.info('模块Markdown.py已加载')
 
-    def convert(resDict,wrap=1):
+    def convert(self, resDict,wrap=1):
         #这里新增了一个wrap参数用于指定换行符个数
         if type(wrap) != int:
             raise TypeError('Argument "wrap" Must be int')

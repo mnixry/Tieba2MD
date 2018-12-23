@@ -7,7 +7,7 @@
 '''
 
 from Markdown import markdown
-from Spider import posts
+from Spider import spider
 from avalon_framework import Avalon
 import os
 
@@ -40,13 +40,16 @@ while True:
     fileName = Avalon.gets('请输入要保存的文件名或目录+文件名，文件名必须以.md为后缀:\n[?]:')
     if fileName.split('.')[-1] != 'md':
         Avalon.warning('文件名错误！')
-        pass
-    try:
-        file = open(fileName,'w+',1,'utf-8')
-    except:
-        Avalon.warning('文件错误!')
     else:
-        break
+        try:
+            file = open(fileName,'w+',1,'utf-8')
+        except:
+            Avalon.warning('文件错误!')
+        else:
+            break
+
+posts = spider(debug=False)
+markdown = markdown()
 
 Avalon.info('程序启动……',highlight=True)
 
