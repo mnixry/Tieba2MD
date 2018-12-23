@@ -2,7 +2,7 @@ from avalon_framework import Avalon
 from Spider import posts
 from Image import image
 from Database import database
-from markdown import markdown
+from Markdown import markdown
 import threading,queue,time,os
 
 postsGetExit = imagesGetExit = imagesUploadExit =False

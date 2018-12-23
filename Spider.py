@@ -11,12 +11,6 @@ from avalon_framework import Avalon
 from urllib import request,error
 import os,time,json,random,html
 
-
-'''
-今天看百度贴吧，发现百度贴吧不同时间发出的贴的class属性各不相同
-这样的话我只能提前上CSS分析了啊
-我看看能不能找到别的大佬问一下解决方案
-'''
 #User-Agent获取，请确保“user-agents.txt”存在！
 _userAgent = (open('user-agents.txt','rt',1,'utf-8','ignore')).readlines()
 
@@ -38,7 +32,7 @@ class posts():
             except error.URLError as e:
                 Avalon.warning("访问失败!原因:%s" % (str(e)))
             except KeyboardInterrupt:
-                Avalon.error("用户强制退出")
+                Avalon.critical("用户强制退出")
                 quit()
             except:
                 Avalon.warning("出现未知错误!")
@@ -49,7 +43,7 @@ class posts():
 
     def pageNumber(raw):#从html源文件中选取总计页数
         floorGet = etree.HTML(raw)
-        floorXpath = floorGet.xpath('//div[@class="pb_footer"]//li[@class="l_reply_num"]//input/@max-page')
+        floorXpath = floorGet.xpath('//div/div[@id="ajax-down"]//div[@id]//li/input/@max-page')
         if floorXpath != []:
             return(int(floorXpath[0]))
         else:
@@ -59,20 +53,21 @@ class posts():
         #如果你没有读过百度贴吧帖子的html源文件，那么你就不要往下看了
         #看了你也看不明白
         theradList = etree.HTML(raw)
-        theradList = theradList.xpath('//div[@class="l_post j_l_post l_post_bright  "]')
+        theradList = theradList.xpath('//div[@class="p_postlist"]/div[@class="p_postlist"]/div[@class]')
         finalList = []
         for perFloor in theradList:
             floorDict = {}
-            #没问题了 
-            #不知为何，百度贴吧修改了代码
-            #如果在此版本放出后一个月内百度贴吧代码再次修改
-            #我会考虑将此项目闭源或者通过css分析元素(不会做,除非找到人帮我做,不然我只能选择闭源)
+            #更改了Xpath的匹配方式
             floorNum = json.loads(perFloor.xpath('./@data-field')[0])['content']['post_no']
             author = json.loads(perFloor.xpath('./@data-field')[0])['author']['user_name']
-            text = perFloor.xpath('.//div[@class="d_post_content j_d_post_content  clearfix"]')[0]
+            text = perFloor.xpath('.//cc//div[@id]')[0]
             final_text = html.unescape(etree.tostring(text).decode())
             floorDict['floor'] = int(floorNum)
             floorDict['author'] = author
             floorDict['text'] = final_text
             finalList.append(floorDict)
         return(finalList)
+
+if __name__ == "__main__":
+    Avalon.critical('模块非法调用!请运行Main.py!')
+    quit()

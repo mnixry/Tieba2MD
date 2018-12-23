@@ -17,7 +17,14 @@ _brTag = re.compile('<br\s*?/?>')
 
 class markdown():
 
-    def convert(resDict):
+    def convert(resDict,wrap=1):
+        #这里新增了一个wrap参数用于指定换行符个数
+        if type(wrap) != int:
+            raise TypeError('Argument "wrap" Must be int')
+        elif wrap > 2:
+            wrap = 2
+        elif wrap < 0:
+            wrap = 1
         #转换html到Markdown格式函数（按楼层转换）
         #如果你修改了在Spider.py中html的获取方式，此处逻辑需要修改
         authorInfo = str(resDict['floor']) + '楼|作者:' + resDict['author']
@@ -38,11 +45,15 @@ class markdown():
             imgBed = img.xpath('./@src')[0]
             #如果你需要使用图床，请取消下面一行的注释，但是这会大大减慢转换速度，同时带来部分Markdown解析的兼容性问题
             #imgBed = image.bedUpload(image.get(imgBed))
-            link = '\n![%s](%s)' % (authorInfo,imgBed)
+            link = '\n![%s](%s)\n' % (authorInfo,imgBed)
             textHTML = textHTML.replace(string,link)
         #替换其他标签
         textHTML = _divTag.sub('',textHTML)
         textHTML = textHTML.replace('</div>','')
-        textHTML = _brTag.sub('\n',textHTML)
+        textHTML = _brTag.sub('\n'*wrap,textHTML)
         
         return(textHTML + lastInfo + '\n\n---\n\n')
+
+if __name__ == "__main__":
+    Avalon.critical('模块非法调用!请运行Main.py!')
+    quit()

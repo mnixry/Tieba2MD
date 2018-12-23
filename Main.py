@@ -30,10 +30,10 @@ while True:
 onlySeeLZ = Avalon.ask('只看楼主？',True)
 
 if onlySeeLZ:
-    postLink = 'https://tieba.baidu.com/p/%s?see_lz=1&pn=' % (postID)
+    postLink = 'https://tieba.baidu.com/p/%s?see_lz=1&ajax=1&pn=' % (postID)
     Avalon.info('模式:只看楼主',highlight=True)
 else:
-    postLink = 'https://tieba.baidu.com/p/%s?pn=' % (postID)
+    postLink = 'https://tieba.baidu.com/p/%s?ajax=1&pn=' % (postID)
     Avalon.info('模式:全部',highlight=True)
 
 while True:

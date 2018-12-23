@@ -133,7 +133,7 @@ class Avalon:
             syslog.syslog(syslog.LOG_WARNING, msg)
 
     def critical(msg, log=True):
-            sys.stdout.write('{}{}[{}CRITICAL{}{1}{2}] {}{}\n'.format(Avalon.FG.R, Avalon.FM.BD, Avalon.BG.LR, Avalon.FM.RST,str(msg), Avalon.FM.RST))
+            sys.stdout.write('{}{}{}[CRITICAL] {}{}\n'.format(Avalon.BG.LR, Avalon.FM.BD, Avalon.FG.W,str(msg), Avalon.FM.RST))
             if log and sys.platform != 'win32':
                 syslog.syslog(syslog.LOG_WARNING, msg)
 
