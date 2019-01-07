@@ -27,14 +27,14 @@ while True:
         Avalon.info('帖子ID:' + postID)
         break
 
-onlySeeLZ = Avalon.ask('只看楼主？',True)
+onlySeeLZ = Avalon.ask('只看楼主？', True)
 
 if onlySeeLZ:
     postLink = 'https://tieba.baidu.com/p/%s?see_lz=1&ajax=1&pn=' % (postID)
-    Avalon.info('模式:只看楼主',highlight=True)
+    Avalon.info('模式:只看楼主', highlight=True)
 else:
     postLink = 'https://tieba.baidu.com/p/%s?ajax=1&pn=' % (postID)
-    Avalon.info('模式:全部',highlight=True)
+    Avalon.info('模式:全部', highlight=True)
 
 while True:
     fileName = Avalon.gets('请输入要保存的文件名或目录+文件名，文件名必须以.md为后缀:\n[?]:')
@@ -42,7 +42,7 @@ while True:
         Avalon.warning('文件名错误！')
     else:
         try:
-            file = open(fileName,'w+',1,'utf-8')
+            file = open(fileName, 'w+', 1, 'utf-8')
         except:
             Avalon.warning('文件错误!')
         else:
@@ -51,9 +51,9 @@ while True:
 posts = spider(debug=False)
 markdown = markdown()
 
-Avalon.info('程序启动……',highlight=True)
+Avalon.info('程序启动……', highlight=True)
 
-for pageNumber in range(1,posts.pageNumber(posts.getPost(postLink + '1')) + 1):
+for pageNumber in range(1, posts.pageNumber(posts.getPost(postLink + '1')) + 1):
     Avalon.time_info('开始进行第%s页' % (str(pageNumber)))
     raw = posts.getPost(postLink + str(pageNumber))
     for perFloor in posts.proccessPost(raw):
