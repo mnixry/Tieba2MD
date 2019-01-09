@@ -19,7 +19,7 @@ class markdown():
     def __init__(self):
         Avalon.info('模块Markdown.py已加载')
 
-    def convert(self, resDict,wrap=1):
+    def convert(self, resDict, imageBed,wrap=1):
         #这里新增了一个wrap参数用于指定换行符个数
         if type(wrap) != int:
             raise TypeError('Argument "wrap" Must be int')
@@ -45,6 +45,7 @@ class markdown():
         for img in resHTML.xpath('//img[@class="BDE_Image"]'):
             string = html.unescape(etree.tostring(img).decode())
             imgBed = img.xpath('./@src')[0]
+            imgBed = imageBed[imgBed]
             #如果你需要使用图床，请取消下面一行的注释，但是这会大大减慢转换速度，同时带来部分Markdown解析的兼容性问题
             #imgBed = image.bedUpload(image.get(imgBed))
             link = '\n![%s](%s)\n' % (authorInfo,imgBed)

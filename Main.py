@@ -9,6 +9,8 @@
 from Markdown import markdown
 from Spider import spider
 from avalon_framework import Avalon
+from Image import image
+from lxml import etree
 import os
 
 #现在写在这里的所有代码都只是临时解决方案
@@ -48,15 +50,19 @@ while True:
         else:
             break
 
-posts = spider(debug=False)
+posts = spider(debug=True)
 markdown = markdown()
+image = image(debug=True)
 
 Avalon.info('程序启动……', highlight=True)
 
 for pageNumber in range(1, posts.pageNumber(posts.getPost(postLink + '1')) + 1):
     Avalon.time_info('开始进行第%s页' % (str(pageNumber)))
     raw = posts.getPost(postLink + str(pageNumber))
+    gotImg = etree.HTML(raw).xpath('//img[@class="BDE_Image"]/@src')
+    print(gotImg)
+    imgLink = image.multiThread(gotImg)
     for perFloor in posts.proccessPost(raw):
-        file.write(markdown.convert(perFloor))
+        file.write(markdown.convert(perFloor,imgLink))
 
 file.close()

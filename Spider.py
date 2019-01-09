@@ -42,7 +42,7 @@ class spider():
                     postRequest.add_header(
                         'Referer', 'https://tieba.baidu.com')
                 except:
-                    pass
+                    continue
                 else:
                     postRead = request.urlopen(postRequest, timeout=4).read()
                     if self.debug:
