@@ -53,7 +53,7 @@ while True:
         else:
             break
 
-posts = spider(debug=True)
+posts = spider(debug=False)
 markdown = markdown()
 image = image(debug=False)
 

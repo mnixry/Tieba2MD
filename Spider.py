@@ -10,11 +10,26 @@ from lxml import etree
 from avalon_framework import Avalon
 from urllib import request, error
 from socket import timeout
+from functools import wraps
 import os
 import time
 import json
 import random
 import html
+
+
+DEBUG_MODE = False
+
+def executeTime(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        startTime = time.time()*1000
+        result = func(*args, **kwargs)
+        if DEBUG_MODE:
+            totalTime = time.time()*1000 - startTime
+            print(totalTime)
+        return(result)
+    return(wrapper)
 
 class spider():
     def __init__(self, debug=False):
@@ -24,13 +39,16 @@ class spider():
         Avalon.info('模块Spider.py已加载')
         if debug:
             self.debug = True
+            DEBUG_MODE = True
             Avalon.warning('Spider.py DEBUG Mode Enabled')
         elif not debug:
             self.debug = False
+            DEBUG_MODE = False
         else:
             raise TypeError('Argument "Debug" must be bool')
             quit(1)
 
+    @executeTime
     def getPost(self, link):  # 获得html源文件函数
         for tryTimes in range(1, 11):  # 这是一个死循环，直到程序正常获得数据才结束
             try:
@@ -69,6 +87,7 @@ class spider():
                 Avalon.debug('Link:%s' % link)
         return(postRead.decode())
 
+    @executeTime
     def pageNumber(self, raw):  # 从html源文件中选取总计页数
         floorGet = etree.HTML(raw)
         floorXpath = floorGet.xpath(
@@ -79,6 +98,7 @@ class spider():
             Avalon.critical('程序无法正确获得帖子页数')
             quit(1)
 
+    @executeTime
     def proccessPost(self, raw):  # 将源文件转换为dict类型的数据
         #如果你没有读过百度贴吧帖子的html源文件，那么你就不要往下看了
         #看了你也看不明白
