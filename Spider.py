@@ -94,6 +94,11 @@ class spider():
         for perFloor in theradList:
             floorDict = {}
             #更改了Xpath的匹配方式
+            if self.debug:
+                debugText = html.unescape(etree.tostring(perFloor).decode())
+                debugText.replace('','')
+            if perFloor.xpath('./@data-field') == []:
+                continue
             floorNum = json.loads(perFloor.xpath(
                 './@data-field')[0])['content']['post_no']
             author = json.loads(perFloor.xpath(

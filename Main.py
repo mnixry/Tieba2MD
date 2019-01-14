@@ -17,6 +17,9 @@ import os
 #会在短期内使用多线程解决
 #所以没有注释（没有注释应该也能看懂）
 
+
+imageBed = False
+
 while True:
     link = Avalon.gets('请输入帖子链接:\n[?]:')
     try:
@@ -52,7 +55,7 @@ while True:
 
 posts = spider(debug=True)
 markdown = markdown()
-image = image(debug=True)
+image = image(debug=False)
 
 Avalon.info('程序启动……', highlight=True)
 
@@ -60,8 +63,13 @@ for pageNumber in range(1, posts.pageNumber(posts.getPost(postLink + '1')) + 1):
     Avalon.time_info('开始进行第%s页' % (str(pageNumber)))
     raw = posts.getPost(postLink + str(pageNumber))
     gotImg = etree.HTML(raw).xpath('//img[@class="BDE_Image"]/@src')
-    print(gotImg)
-    imgLink = image.multiThread(gotImg)
+    if imageBed:
+        #print(gotImg)
+        imgLink = image.multiThread(gotImg)
+    else:
+        imgLink = {}
+        for i in gotImg:
+            imgLink[i] = str(i)
     for perFloor in posts.proccessPost(raw):
         file.write(markdown.convert(perFloor,imgLink))
 

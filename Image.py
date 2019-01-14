@@ -11,16 +11,20 @@ import os
 import random
 import json
 import threading
-import queue
+import uuid
+import string
 from time import sleep
 from socket import timeout
 from avalon_framework import Avalon
 from urllib import parse, request, error
 
 
+
+__randomGen = lambda l:''.join(random.choice(string.digits + string.ascii_letters) for i in range(l))
 class image():
 
-    def __init__(self, bedKey='2333', debug=False, threadNumber=4):
+    def __init__(self, bedKey='', debug=False, threadNumber=4,workDir=os.getcwd(),tempDir='temp'):
+        self.__tempDir = os.path.join(workDir,tempDir)
         self.__accessKey = str(bedKey)
         self.__threadNumber = int(threadNumber)
         if debug == True:
@@ -29,7 +33,9 @@ class image():
             self.debug = False
         #User-Agent获取，请确保“user-agents.txt”存在
         with open('user-agents.txt', 'rt', 1, 'utf-8', 'ignore') as fileRead:
-            self.__userAgent = fileRead.readlines()
+            self.__userAgent = []
+            for perline in fileRead.readlines():
+                self.__userAgent.append(perline.replace('\n',''))
 
     def get(self, link):
         if self.debug:
@@ -54,73 +60,109 @@ class image():
                 break
         return(imageRead)
 
-    def bedUpload(self, raw):
-        postData = {}
-        imageEncoded = base64.b64encode(raw)
-        if self.debug:
-            Avalon.debug_info('API Access Key:%s,Image Base64:%s'%(self.__accessKey,str(imageEncoded)[0:30]))
-        postData['key'] = str(self.__accessKey)
-        postData['OnlyUrl'] = 0
-        postData['imgBase64'] = imageEncoded
-        postData = parse.urlencode(postData).encode()
+    def tempWrite(self,raw):
+        if not os.path.exists(self.__tempDir):
+            os.mkdir(self.__tempDir)
+        tempFileName = str(uuid.uuid4()) + '.jpg'
+        tempFileName = os.path.join(self.__tempDir,tempFileName)
+        with open(tempFileName,'wb') as fileIO:
+            fileIO.write(raw)
+        return(tempFileName)
+
+    def bedUpload(self, fileName):
+        # postData = {}
+        # with open(fileName,'rb') as raw:
+        #     files = {'image':{'filename':os.path.split(fileName)[1].encode(),'content':raw.read(),'mimetype':'images/jpeg'}}
+        # #if self.debug:
+        # #    Avalon.debug_info('API Access Key:%s,Image Bytes:%s'%(self.__accessKey,str(raw)[0:30]))
+        # postData['token'] = str(self.__accessKey)
+        # postData['apiSelect'] = 'SouGou'
+        # Reqdata,headers = encodeFilesMultipart(postData,files)
         while True:
+            headers = {}
             try:
+                headers['User-Agent'] = random.choice(self.__userAgent)
+                #headers = parse.urlencode(headers).encode()
+                # headers = {'User-Agent':random.choice(self.__userAgent)}
                 postRequest = request.Request(
-                    'https://image.mnixry.cn/public/api', postData)
-                postRequest.add_header(
-                    'User-Agent', (random.choice(self.__userAgent)).replace('\n', ''))
-                readRes = request.urlopen(postRequest).read()
+                     'https://image.mnixry.cn/api/v1/upload',headers=headers,data=open(fileName,'rb'))
+                readRes = request.urlopen(postRequest,timeout=5).read()
             except error.URLError as e:
-                Avalon.warning('图片上传出错!原因:%s' % (str(e)))
+                Avalon.warning('图片上传出错!原因:%s'%e.reason)
+            except timeout as e:
+                Avalon.warning('图片上传出错!原因:%s'%e)
             except KeyboardInterrupt:
                 Avalon.error("用户强制退出")
                 quit()
-            except:
-                Avalon.warning("出现未知错误!")
+            #except:
+            #    Avalon.warning("出现未知错误!")
             else:
                 readDict = json.loads(readRes.decode())
-                if readDict['code'] == '1':
+                if readDict['code'] == '200':
                     break
                 else:
                     Avalon.warning('图片上传出错!原因:%s' % (str(readDict['msg'])))
-        return(str(readDict['img']))
+        return(str(readDict['data']['url']))
 
 
-    def multiThread(self, imgLinkList):
-        if type(imgLinkList) != list:
+    def multiThread(self, imgList):
+        imgLinkList = imgList
+        self.picinfo = {}
+        if type(imgLinkList) != list or list(imgLinkList) == []:
             raise TypeError
-        self.__imageExit = False
-        imageThread = []
-        self.__workQueue = queue.Queue(self.__threadNumber*4)
-        self.__queueLock = threading.Lock()
-        for i in range(self.__threadNumber):
-            thread = threading.Thread(target=fullBehavior,name='ImageThread-%d'%i,args=(self))
-            thread.start()
-            imageThread.append(thread)
-        self.__queueLock.acquire()
         for i in imgLinkList:
-            self.__workQueue.put(str(i))
-        self.__queueLock.release()
-        while not self.__workQueue.empty():
-            pass
-        self.__imageExit = True
-        for i in imageThread:
-            i.join(timeout=15)
+            threading._start_new_thread(image.fullBehavior,(self,i))
+        while True:
+            for i in imgLinkList:
+                if self.picinfo.get(i) != None:
+                    imgLinkList.remove(i)
+            if imgLinkList == []:
+                break
         return(self.picinfo)
 
-def fullBehavior(self):
-    link = self.__workQueue
-    self.picinfo = {}
-    while not self.__imageExit:
-        self.__queueLock.acquire()
-        if not self.__workQueue.empty():
-            imageOriginLink = str(link.get())
-            if self.debug:
-                Avalon.debug_info('Thread Start Image %s'%imageOriginLink)
-            self.__queueLock.release()
-            pictureRaw = image.get(self,imageOriginLink)
-            pictureUpload = image.bedUpload(self,pictureRaw)
-            self.picinfo[imageOriginLink] = str(pictureUpload)
-        else:
-            self.__queueLock.release()
-        #sleep(1)
+    def fullBehavior(self,link):
+        imgOrigin = str(link)
+        imgResourse = image.get(self,imgOrigin)
+        imgFilename = image.tempWrite(self,imgResourse)
+        imgUp = image.bedUpload(self,imgFilename)
+        self.picinfo[imgOrigin] = imgUp
+        return()
+
+
+def encodeFilesMultipart(data, files):
+    boundary = __randomGen(30)
+    special_separator = "--" + boundary
+    lines = []
+
+    for name, value in data.items():
+        lines.extend((
+            special_separator,
+            'Content-Disposition: form-data; name="%s"' % str(name),
+            '',
+            str(value.encode()),
+        ))
+
+    for name, value in files.items():
+        filename = value["filename"]
+        lines.extend((
+            special_separator,
+            'Content-Disposition: form-data; name="%s"; filename="%s"' % (
+                str(name), str(filename)),
+            'Content-Type: %s' % value["mimetype"],
+            'Content-Transfer-Encoding: binary',
+            '',
+            str(value['content']),
+        ))
+
+    lines.extend((
+        special_separator + "--",
+        '',
+    ))
+    body = '\r\n'.join(lines)
+
+    headers = {
+        'Content-Type': 'multipart/form-data; boundary=%s' % boundary,
+        'Content-Length': str(len(body)),
+    }
+
+    return (body, headers)
