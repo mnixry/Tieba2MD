@@ -1,5 +1,6 @@
 #/usr/local/env python3
 #__coding:utf-8 __
+#Project Link:https://github.com/mnixry/Tieba2MD
 '''
 百度贴吧下载器主程序
 
@@ -10,6 +11,7 @@ from Markdown import markdown
 from Spider import spider
 from avalon_framework import Avalon
 from Image import image
+from Image import fileUpload
 from lxml import etree
 import os
 

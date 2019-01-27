@@ -1,5 +1,6 @@
 #/usr/local/env python3
 #__coding:utf-8 __
+#Project Link:https://github.com/mnixry/Tieba2MD
 '''
 百度贴吧帖子下载/处理模块
 版本：1.4
@@ -17,17 +18,14 @@ import json
 import random
 import html
 
-
-DEBUG_MODE = False
-
 def executeTime(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         startTime = time.time()*1000
         result = func(*args, **kwargs)
-        if DEBUG_MODE:
+        if True:
             totalTime = time.time()*1000 - startTime
-            print(totalTime)
+            totalTime
         return(result)
     return(wrapper)
 
@@ -39,11 +37,9 @@ class spider():
         Avalon.info('模块Spider.py已加载')
         if debug:
             self.debug = True
-            DEBUG_MODE = True
             Avalon.warning('Spider.py DEBUG Mode Enabled')
         elif not debug:
             self.debug = False
-            DEBUG_MODE = False
         else:
             raise TypeError('Argument "Debug" must be bool')
             quit(1)
