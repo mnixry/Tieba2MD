@@ -22,7 +22,7 @@ class MultiPartForm:
     def __init__(self):
         self.form_fields = self.files = []
         # 使用随机字符分割MIME部分
-        self.boundary = uuid.uuid4().hex
+        self.boundary = str(uuid.uuid4().hex)
 
     def get_content_type(self):
         return('multipart/form-data; boundary='+self.boundary)
@@ -63,7 +63,7 @@ class MultiPartForm:
 
         # Add the form fields
         for name, value in self.form_fields:
-            buffer.write(boundary.encode())
+            buffer.write(boundary)
             buffer.write(self.__form_data(name))
             buffer.write(b'\r\n')
             buffer.write(value.encode())

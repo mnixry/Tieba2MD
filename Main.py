@@ -57,7 +57,7 @@ while True:
 
 posts = spider(debug=False)
 markdown = markdown()
-image = image(debug=False)
+image = image(debug=True)
 
 Avalon.info('程序启动……', highlight=True)
 
@@ -67,7 +67,7 @@ for pageNumber in range(1, posts.pageNumber(posts.getPost(postLink + '1')) + 1):
     gotImg = etree.HTML(raw).xpath('//img[@class="BDE_Image"]/@src')
     if imageBed:
         #print(gotImg)
-        imgLink = image.multiThread(gotImg)
+        imgLink = image.uploadMultiImage(gotImg)
     else:
         imgLink = {}
         for i in gotImg:
