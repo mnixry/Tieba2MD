@@ -20,7 +20,14 @@ from time import sleep
 from shutil import rmtree
 
 
-class image():
+class image():#图片上传/下载模块
+
+    '''
+    实例化模块
+    debug参数:开启debug模式,默认关闭
+    workDir参数:工作目录,默认当前目录
+    tempDir参数:临时文件目录,默认当前目录下的temp文件夹(记得定时清理)
+    '''
     def __init__(self: None, debug: bool = False,
                  workDir: str = os.getcwd(), tempDir: str = 'temp'):
         with open('user-agents.txt') as f:
@@ -39,6 +46,12 @@ class image():
         else:
             raise TypeError
 
+
+    '''
+    单张图片下载
+    imageLink参数:图片原链接
+    自动保存在临时文件目录下
+    '''
     def downloadSingleImage(self: None, imageLink: str):
         for i in range(1, 11):
             try:
@@ -61,17 +74,22 @@ class image():
                 imageLink, len(imageRes)))
         return(imageRes)
 
+    '''
+    单张图片上传
+    imageFilePath参数:图片本地绝对路径
+    默认上传 https://image.mnixry.cn 如需上传其他图床请自行更改
+    '''
     def uploadSingleImage(self: None, imageFilePath: str):
         form = MultiPartForm()
         with open(imageFilePath, 'rb') as f:
-            form.add_file('image', f.name, f)
-            form.add_field('token', '')
-            form.add_field('apiSelect', 'Sina')
+            form.add_file('image', f.name, f)#文件提交
+            form.add_field('token', '')#文件上传密钥，默认为空
+            form.add_field('apiSelect', 'Sina')#默认选择新浪图床(推荐),还可以选择 SouGou:搜狗图床,Smms:https://sm.ms 图床
         r = request.Request(
-            'https://image.mnixry.cn/api/v1/upload', data=bytes(form))
-        r.add_header('User-Agent', self.__getUserAgent())
-        r.add_header('Content-type', form.get_content_type())
-        r.add_header('Content-length', len(bytes(form)))
+            'https://image.mnixry.cn/api/v1/upload', data=bytes(form))#用生成好的表单参数制造请求
+        r.add_header('User-Agent', self.__getUserAgent())#随机UA(必要性存疑)
+        r.add_header('Content-type', form.get_content_type())#提交表单类型(主要是Boundary)
+        r.add_header('Content-length', len(bytes(form)))#提交表单大小(单位:bytes)
         if self.__debugMode:
             Avalon.debug_info('文件名:%s,请求头:%s' % (
                 os.path.split(imageFilePath)[1], str(r.headers)))
@@ -104,6 +122,7 @@ class image():
         imageResourse = self.downloadSingleImage(imageOriginLink)
         if imageResourse is False:
             self.__imageLinkDict[imageOriginLink] = imageOriginLink
+            return(self.__imageLinkDict[imageOriginLink])
         fullImagePath = os.path.join(
             self.__fullTempPath, self.__getRandomUUID())
         with open(fullImagePath, 'wb') as f:
@@ -113,8 +132,12 @@ class image():
             self.__imageLinkDict[imageOriginLink] = imageOriginLink
         else:
             self.__imageLinkDict[imageOriginLink] = imageUploadLink
-        return(imageUploadLink)
+        return(self.__imageLinkDict[imageOriginLink])
 
+    '''
+    上传多张图片
+    imageFileList参数:用列表将图片连接置入
+    '''
     def uploadMultiImage(self: None, imageFileList: list):
         self.__imageLinkDict.clear()
         for i in imageFileList:

@@ -58,7 +58,7 @@ class spider():
                 except:
                     continue
                 else:
-                    postRead = request.urlopen(postRequest, timeout=4).read()
+                    postRead = request.urlopen(postRequest, timeout=5).read()
                     if self.debug:
                         Avalon.debug_info('链接:"%s"请求头添加成功.' % link)
             #错误处理
@@ -82,6 +82,7 @@ class spider():
             Avalon.error('获取失败!')
             if self.debug:
                 Avalon.debug('Link:%s' % link)
+            quit(1)
         return(postRead.decode())
 
     @executeTime
