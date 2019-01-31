@@ -19,7 +19,7 @@ USE_IMAGE_BED = True
 GENERAL_DEBUG_MODE = False
 
 while True:
-    link = Avalon.gets('请输入帖子链接:\n[?]:')
+    link = Avalon.gets('请输入帖子链接:')
     try:
         postID = int((link.split('/'))[-1].split('?')[0])
     except:
@@ -40,7 +40,7 @@ else:
     Avalon.info('模式:全部', highlight=True)
 
 while True:
-    fileName = Avalon.gets('请输入要保存的文件名或目录+文件名，文件名必须以.md为后缀:\n[?]:')
+    fileName = Avalon.gets('请输入要保存的文件名，必须以.md为后缀:')
     if fileName.split('.')[-1] != 'md':
         Avalon.warning('文件名错误！')
     else:
@@ -68,6 +68,7 @@ for pageNumber in range(1, posts.pageNumber(posts.getPost(postLink + '1')) + 1):
         for i in gotImg:
             imgLink[i] = str(i)
     for perFloor in posts.proccessPost(raw):
-        file.write(markdown.convert(perFloor,imgLink))
+        file.write(markdown.convert(perFloor, imgLink))
 
-file.close()
+del posts, markdown, image
+file.flush().close()

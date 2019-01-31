@@ -22,7 +22,7 @@ class MultiPartForm:
     #处理提交表单时的数据
     #讲道理。。urllib提交表单是i倍的不方便。。。但是我也不想就为了上传个图片再用个第三方库
 
-    def __init__(self,boundaryPrefix:str='----WebKitFormBoundary'):
+    def __init__(self, boundaryPrefix: str = '----WebKitFormBoundary'):
         self.form_fields = []
         self.files = []
         self.boundary = (boundaryPrefix+''.join(random.sample(
@@ -92,4 +92,3 @@ class MultiPartForm:
 if __name__ == "__main__":
     Avalon.critical('模块非法调用!请运行Main.py!')
     quit(1)
-
