@@ -2,115 +2,94 @@
 #__coding:utf-8 __
 #Project Link:https://github.com/mnixry/Tieba2MD
 '''
-文件上传模块
+表单提交模块
 
 遵守GPL协议，侵权必究
-代码来自:https://pymotw.com/3/urllib.request/#uploading-files
+代码部分来自：https://pymotw.com/3/urllib.request/#uploading-files，有修改
 '''
 
 import io
 import mimetypes
 import uuid
 import time
+import random
+import string
 from urllib import request
+from avalon_framework import Avalon
 
 
 class MultiPartForm:
     #处理提交表单时的数据
-    #讲道理。。urllib提交文件是i倍的不方便。。。但是我也不想就为了上传个图片再用个第三方库
+    #讲道理。。urllib提交表单是i倍的不方便。。。但是我也不想就为了上传个图片再用个第三方库
 
-    def __init__(self):
-        self.form_fields = self.files = []
-        # 使用随机字符分割MIME部分
-        self.boundary = str(uuid.uuid4().hex)
-
-    def get_content_type(self):
-        return('multipart/form-data; boundary='+self.boundary)
-
-    def add_field(self, name, value):
-        self.form_fields.append((name, value))
+    def __init__(self,boundaryPrefix:str='----WebKitFormBoundary'):
+        self.form_fields = []
+        self.files = []
+        self.boundary = (boundaryPrefix+''.join(random.sample(
+            string.ascii_letters + string.digits, 16))).encode()
         return
 
+    def get_content_type(self):
+        return 'multipart/form-data; boundary={}'.format(
+            self.boundary.decode())
+
+    def add_field(self, name, value):
+        #增加表单值
+        self.form_fields.append((name, value))
+
     def add_file(self, fieldname, filename, fileHandle, mimetype=None):
+        #添加文件
         body = fileHandle.read()
-        if not mimetype:
+        if mimetype is None:
             mimetype = (
                 mimetypes.guess_type(filename)[0] or
                 'application/octet-stream'
             )
         self.files.append((fieldname, filename, mimetype, body))
-        return()
+        return
 
     @staticmethod
-    def __form_data(name):
-        return(('Content-Disposition: form-data; '
-                'name="%s"\r\n' % name).encode())
+    def _form_data(name):
+        return ('Content-Disposition: form-data; '
+                'name="{}"\r\n').format(name).encode()
 
     @staticmethod
-    def __attached_file(name, filename):
-        return(('Content-Disposition: file; '
-                'name="%s"; filename="%s"\r\n' % (name, filename)).encode())
+    def _attached_file(name, filename):
+        return ('Content-Disposition: form-data; '
+                'name="{}"; filename="{}"\r\n').format(
+                    name, filename).encode()
 
     @staticmethod
-    def __content_type(ct):
-        return(('Content-Type:%s\r\n' % ct).encode())
+    def _content_type(ct):
+        return 'Content-Type: {}\r\n'.format(ct).encode()
 
     def __bytes__(self):
-        # Return a byte-string representing the form data,
-        # including attached files.
+        #返回bytes类型的表单数据，通过data参数post提交
         buffer = io.BytesIO()
-        boundary = ('--%s\r\n' % self.boundary).encode()
+        boundary = b'--' + self.boundary + b'\r\n'
 
-        # Add the form fields
+        #增加表单项
         for name, value in self.form_fields:
             buffer.write(boundary)
-            buffer.write(self.__form_data(name))
+            buffer.write(self._form_data(name))
             buffer.write(b'\r\n')
             buffer.write(value.encode())
             buffer.write(b'\r\n')
 
-        # Add the files to upload
+        #增加表单文件
         for f_name, filename, f_content_type, body in self.files:
             buffer.write(boundary)
-            buffer.write(self.__attached_file(f_name, filename))
-            buffer.write(self.__content_type(f_content_type))
+            buffer.write(self._attached_file(f_name, filename))
+            buffer.write(self._content_type(f_content_type))
             buffer.write(b'\r\n')
             buffer.write(body)
             buffer.write(b'\r\n')
 
-        buffer.write(('--%s--\r\n' % self.boundary).encode())
-        return(buffer.getvalue())
+        buffer.write(b'--'+self.boundary + b'--\r\n')
+        return buffer.getvalue()
 
 
-# if __name__ == '__main__':
-#     # Create the form with simple fields
-#     form = MultiPartForm()
-#     form.add_field('firstname', 'Doug')
-#     form.add_field('lastname', 'Hellmann')
+if __name__ == "__main__":
+    Avalon.critical('模块非法调用!请运行Main.py!')
+    quit(1)
 
-#     # Add a fake file
-#     form.add_file(
-#         'biography', 'bio.txt',
-#         fileHandle=io.BytesIO(b'Python developer and blogger.'))
-
-#     # Build the request, including the byte-string
-#     # for the data to be posted.
-#     data = bytes(form)
-#     r = request.Request('http://localhost:8080/', data=data)
-#     r.add_header(
-#         'User-agent',
-#         'PyMOTW (https://pymotw.com/)',
-#     )
-#     r.add_header('Content-type', form.get_content_type())
-#     r.add_header('Content-length', len(data))
-
-#     print()
-#     print('OUTGOING DATA:')
-#     for name, value in r.header_items():
-#         print('{}: {}'.format(name, value))
-#     print()
-#     print(r.data.decode('utf-8'))
-
-#     print()
-#     print('SERVER RESPONSE:')
-#     print(request.urlopen(r).read().decode('utf-8'))
