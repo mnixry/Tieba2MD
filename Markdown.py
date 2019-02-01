@@ -18,6 +18,7 @@ from avalon_framework import Avalon
 #正则表达式，用来匹配标签
 _divTag = re.compile(r'<div[^>]*>')
 _brTag = re.compile(r'<br\s*?/?>')
+_spanTag = re.compile(r'<span[^>]*>(.*?)</span>')
 
 
 class markdown():
@@ -59,6 +60,7 @@ class markdown():
         #替换其他标签
         textHTML = _divTag.sub('', textHTML)
         textHTML = textHTML.replace('</div>', '')
+        textHTML = _spanTag.sub('', textHTML)
         textHTML = _brTag.sub('\n'*wrap, textHTML)
 
         return(textHTML + lastInfo + '\n\n---\n\n')

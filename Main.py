@@ -45,7 +45,9 @@ while True:
         Avalon.warning('文件名错误！')
     else:
         try:
-            file = open(fileName, 'w+', 1, 'utf-8')
+            with open(fileName, 'w+',encoding='utf-8') as f:
+                if not f.writable:
+                    raise Exception
         except:
             Avalon.warning('文件错误!')
         else:
@@ -57,18 +59,24 @@ image = image(debug=GENERAL_DEBUG_MODE)
 
 Avalon.info('程序启动……', highlight=True)
 
-for pageNumber in range(1, posts.pageNumber(posts.getPost(postLink + '1')) + 1):
-    Avalon.time_info('开始进行第%s页' % (str(pageNumber)))
-    raw = posts.getPost(postLink + str(pageNumber))
-    gotImg = etree.HTML(raw).xpath('//img[@class="BDE_Image"]/@src')
-    if USE_IMAGE_BED:
-        imgLink = image.uploadMultiImage(gotImg)
-    else:
-        imgLink = {}
-        for i in gotImg:
-            imgLink[i] = str(i)
-    for perFloor in posts.proccessPost(raw):
-        file.write(markdown.convert(perFloor, imgLink))
 
-del posts, markdown, image
-file.flush().close()
+finalMarkdown = ''
+try:
+    for pageNumber in range(1, posts.pageNumber(posts.getPost(postLink + '1')) + 1):
+        Avalon.time_info('开始进行第%s页' % (str(pageNumber)))
+        raw = posts.getPost(postLink + str(pageNumber))
+        gotImg = etree.HTML(raw).xpath('//img[@class="BDE_Image"]/@src')
+        if USE_IMAGE_BED:
+            imgLink = image.uploadMultiImage(gotImg)
+        else:
+            imgLink = {}
+            for i in gotImg:
+                imgLink[i] = str(i)
+        for perFloor in posts.proccessPost(raw):
+            finalMarkdown = finalMarkdown + markdown.convert(perFloor, imgLink)
+except KeyboardInterrupt:
+    Avalon.critical('用户强制退出')
+finally:
+    del posts, markdown, image
+    with open(fileName,'w+',encoding='utf-8') as f:
+        f.write(finalMarkdown)
