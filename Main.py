@@ -59,11 +59,11 @@ image = image(debug=GENERAL_DEBUG_MODE)
 
 Avalon.info('程序启动……', highlight=True)
 
-
+totalPageNumber = posts.pageNumber(posts.getPost(postLink + '1'))
 finalMarkdown = ''
 try:
-    for pageNumber in range(1, posts.pageNumber(posts.getPost(postLink + '1')) + 1):
-        Avalon.time_info('开始进行第%s页' % (str(pageNumber)))
+    for pageNumber in range(1, totalPageNumber + 1):
+        Avalon.time_info('开始进行第%d页,共%d页' % (pageNumber,totalPageNumber))
         raw = posts.getPost(postLink + str(pageNumber))
         gotImg = etree.HTML(raw).xpath('//img[@class="BDE_Image"]/@src')
         if USE_IMAGE_BED:
