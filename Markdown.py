@@ -1,5 +1,6 @@
 #/usr/local/env python3
 #__coding:utf-8 __
+#Project Link:https://github.com/mnixry/Tieba2MD
 '''
 Markdown转换模块
 
@@ -36,8 +37,7 @@ class markdown():
             wrap = 1
         #转换html到Markdown格式函数（按楼层转换）
         authorInfo = str(resDict['floor']) + '楼|作者:' + resDict['author']
-        lastInfo = '\n<div style="text-align:right;font-size:12px;color:#CCC;">%s</div>' % (
-            authorInfo)
+        lastInfo = '\n<div style="text-align:right;font-size:12px;color:#CCC;">%s</div>' % authorInfo
         resHTML = etree.HTML(resDict['text'])
         textHTML = resDict['text']
         #下面这一句是为了解决在正文开头莫名其妙出现空格的问题

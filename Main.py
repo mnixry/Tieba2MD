@@ -32,13 +32,6 @@ while True:
 
 onlySeeLZ = Avalon.ask('只看楼主？', True)
 
-if onlySeeLZ:
-    postLink = 'https://tieba.baidu.com/p/%s?see_lz=1&ajax=1&pn=' % (postID)
-    Avalon.info('模式:只看楼主', highlight=True)
-else:
-    postLink = 'https://tieba.baidu.com/p/%s?ajax=1&pn=' % (postID)
-    Avalon.info('模式:全部', highlight=True)
-
 while True:
     fileName = Avalon.gets('请输入要保存的文件名，必须以.md为后缀:')
     if fileName.split('.')[-1] != 'md':
@@ -53,18 +46,18 @@ while True:
         else:
             break
 
-posts = spider(debug=GENERAL_DEBUG_MODE)
+posts = spider(postID=int(postID),seeLZ=onlySeeLZ)
 markdown = markdown()
 image = image(debug=GENERAL_DEBUG_MODE)
 
 Avalon.info('程序启动……', highlight=True)
 
-totalPageNumber = posts.pageNumber(posts.getPost(postLink + '1'))
+totalPageNumber = int(posts.postInfo(posts.getPost(1))['Page'])
 finalMarkdown = ''
 try:
     for pageNumber in range(1, totalPageNumber + 1):
         Avalon.time_info('开始进行第%d页,共%d页' % (pageNumber,totalPageNumber))
-        raw = posts.getPost(postLink + str(pageNumber))
+        raw = posts.getPost(int(pageNumber))
         gotImg = etree.HTML(raw).xpath('//img[@class="BDE_Image"]/@src')
         if USE_IMAGE_BED:
             imgLink = image.uploadMultiImage(gotImg)

@@ -12,31 +12,25 @@ from avalon_framework import Avalon
 from urllib import request, error
 from socket import timeout
 from functools import wraps
+from .fileTempSave import temp
 import os
 import time
 import json
 import random
 import html
 
-
-def executeTime(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        startTime = time.time()*1000
-        result = func(*args, **kwargs)
-        if True:
-            totalTime = time.time()*1000 - startTime
-            totalTime
-        return(result)
-    return(wrapper)
-
-
 class spider():
-    def __init__(self: None, debug: bool = False):
+    def __init__(self: None, postID:int , seeLZ:bool,debug: bool = False):
+        self.__tempSave = temp(postID=postID)
+        if seeLZ:
+            self.__postLink = 'https://tieba.baidu.com/p/%s?see_lz=1&ajax=1&pn=' % (postID)
+            Avalon.info('模式:只看楼主', highlight=True)
+        else:
+            self.__postLink = 'https://tieba.baidu.com/p/%s?ajax=1&pn=' % (postID)
+            Avalon.info('模式:全部', highlight=True)
         #User-Agent获取，请确保“user-agents.txt”存在
         with open('user-agents.txt', 'rt', errors='ignore') as fileRead:
             self.__userAgent = fileRead.readlines()
-        #Avalon.info('模块Spider.py已加载')
         if debug:
             self.debug = True
         elif not debug:
@@ -44,9 +38,10 @@ class spider():
         else:
             raise TypeError
 
-    @executeTime
-    def getPost(self: None, link: str):  # 获得html源文件函数
-        for tryTimes in range(1, 11):  # 这是一个死循环，直到程序正常获得数据才结束
+    def getPost(self: None, pageNumber: int):  # 获得html源文件函数
+        self.__workPageNumber = pageNumber
+        link = self.__postLink + str(pageNumber)
+        for tryTimes in range(1, 11):
             try:
                 postRequest = request.Request(link)
                 try:
@@ -58,9 +53,9 @@ class spider():
                 except:
                     continue
                 else:
-                    postRead = request.urlopen(postRequest, timeout=5).read()
+                    postRead:bytes = request.urlopen(postRequest, timeout=5).read()
                     if self.debug:
-                        Avalon.debug_info('链接:"%s"请求头添加成功.' % link)
+                        Avalon.debug_info('链接:"%s"请求头:%s.' % (link,postRequest.headers))
             #错误处理
             except error.URLError as e:
                 Avalon.warning("获取帖子正文失败!原因:%s(%s/10)" %
@@ -83,20 +78,20 @@ class spider():
             if self.debug:
                 Avalon.debug('Link:%s' % link)
             quit(1)
-        return(postRead.decode())
+        self.__tempSave.savePostRaw(postRead.decode(errors='ignore'),pageNumber=pageNumber)
+        return(postRead.decode(errors='ignore'))
 
-    @executeTime
-    def pageNumber(self: None, raw: str):  # 从html源文件中选取总计页数
-        floorGet = etree.HTML(raw)
-        floorXpath = floorGet.xpath(
-            '//div/div[@id="ajax-down"]//div[@id]//li/span[@class="red"][last()]/text()')
-        if floorXpath != []:
-            return(int(floorXpath[0]))
-        else:
-            Avalon.critical('程序无法正确获得帖子页数')
-            quit(1)
+    def postInfo(self:None,raw:str):
+        postGet = etree.HTML(raw)
+        postTitle = postGet.xpath('//div[@class="wrap2"]//h3/@title')
+        postAuthor = postGet.xpath('//div[@class="p_postlist"]/div[@class][1]//div/@author')
+        postPageNum = postGet.xpath('//div/div[@id="ajax-down"]//div[@id]//li/span[@class="red"][last()]/text()')
+        # if not(postTitle and postAuthor and postPageNum):
+        #     Avalon.critical('程序无法正确获得帖子信息')
+        #     quit(1)
+        finalInfo = {'Author':str(postAuthor[0]),'Title':str(postTitle[0]),'Page':int(postPageNum[0])}
+        return finalInfo
 
-    @executeTime
     def proccessPost(self: None, raw: str):
         # 将源文件转换为dict类型的数据
         #如果你没有读过百度贴吧帖子的html源文件，那么你就不要往下看了
@@ -133,6 +128,9 @@ class spider():
             floorDict['author'] = author
             floorDict['text'] = final_text
             finalList.append(floorDict)
+        postFullInfo = self.postInfo(raw=raw)
+        postFullInfo['data'] = finalList
+        self.__tempSave.saveJson(postFullInfo,self.__workPageNumber)
         return(finalList)
 
 
