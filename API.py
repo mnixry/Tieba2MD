@@ -13,7 +13,9 @@ class api():
         self.__workImage = image(debug=debug)
 
     def getInfo(self):
-        return self.__workSpider.getPostInfo()
+        self.__postInfo = self.__workSpider.getPostInfo()
+        self.__workMarkdown.setTitle(self.__postInfo['Title'])
+        return self.__postInfo
 
     def getContent(self, pageNumber: int):
         return self.__workSpider.getPost(pageNumber=pageNumber)
@@ -39,7 +41,7 @@ class api():
         return ''.join(markdownContent)
 
     def saveToFile(self, fileName: str, convedContent: str):
-        with open(fileName, 'wt') as f:
+        with open(file=fileName, mode='wt', encoding='utf-8', errors='ignore') as f:
             f.write(convedContent)
         return
 

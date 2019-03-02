@@ -19,6 +19,7 @@ def singleBehavior(postID:int,savedFileName:str,seeLZ=True,imageBed=True):
             quit(1)
         else:
             post.saveToFile(savedFileName, pageMarkdownContent)
+    return
 
 filePath = Avalon.gets('请输入帖子目录文件路径:')
 with open(filePath) as f:
@@ -29,6 +30,6 @@ for i in perLink:
     perID.append(postID)
 #Avalon.info(str(perID))
 for i in perID:
-    fileName = str(postID) + '.md'
+    fileName = str(i) + '.md'
     # fullBehavior(postID=postID, fileName=fileName, onlySeeLZ=False)
     singleBehavior(postID=i,seeLZ=False,savedFileName=fileName)

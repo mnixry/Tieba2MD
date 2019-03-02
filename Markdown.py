@@ -25,7 +25,12 @@ _spanTag = re.compile(r'<span[^>]*>(.*?)</span>')
 class markdown():
     def __init__(self: None):
         #Avalon.info('模块Markdown.py已加载')
-        pass
+        return
+
+    def setTitle(self: None,title:str):
+        self.__title = str(title)
+        self.__newFile = True
+        return
 
     def convert(self: None, resDict: dict, imageBedLinksDict: dict = {}, wrap: int = 1):
         #这里新增了一个wrap参数用于指定换行符个数
@@ -67,6 +72,10 @@ class markdown():
         textHTML = _spanTag.sub('', textHTML)
         textHTML = _brTag.sub('\n'*wrap, textHTML)
 
+        if self.__newFile:
+            self.__newFile = False
+            textHTML = '\n# ' + self.__title + '\n\n---\n\n' + textHTML
+            
         return(textHTML + lastInfo + '\n\n---\n\n')
 
 

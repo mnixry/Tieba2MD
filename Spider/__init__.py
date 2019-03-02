@@ -133,7 +133,7 @@ class spider():
             if self.debug:
                 debugText = html.unescape(etree.tostring(perFloor).decode())
                 debugText.replace('', '')
-            if perFloor.xpath('./@data-field') == []:
+            if not perFloor.xpath('./@data-field'):
                 if self.debug:
                     Avalon.debug_info(
                         '因为不存在"data-field"属性,跳过对象"%s"' % str(perFloor))
@@ -142,7 +142,12 @@ class spider():
                 './@data-field')[0])['content']['post_no']
             author = json.loads(perFloor.xpath(
                 './@data-field')[0])['author']['user_name']
-            text = perFloor.xpath('.//cc//div[@id]')[0]
+            text = perFloor.xpath('.//cc//div[@id]')
+            if not text:
+                Avalon.debug_info(str(floorNum)+str(author))
+                continue
+            else:
+                text = text[0]
             final_text = html.unescape(etree.tostring(text).decode())
             if self.debug:
                 Avalon.debug_info('%s - %s' % (floorNum, author))
