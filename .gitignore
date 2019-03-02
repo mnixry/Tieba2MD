@@ -7,7 +7,10 @@ test*
 *.db
 *.py[cod]
 *$py.class
+*.txt
 !README.*
+!user-agents.txt
+【*/
 
 # C extensions
 *.so

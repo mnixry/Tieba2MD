@@ -4,6 +4,9 @@ import os
 
 
 def singleBehavior(postID: int, savedFileName: str, seeLZ=True, imageBed=True):
+    if os.path.isfile(savedFileName):
+        Avalon.time_info('帖子已经下载并保存,跳过[ID:%d]'%postID)
+        return True
     post = api(postID=postID, seeLZ=seeLZ)
     try:
         postInfo = post.getInfo()
@@ -30,6 +33,9 @@ def singleBehavior(postID: int, savedFileName: str, seeLZ=True, imageBed=True):
 
 
 filePath = Avalon.gets('请输入帖子目录文件路径:')
+pathName = os.path.splitext(os.path.split(filePath)[-1])[0]
+if not os.path.exists(pathName):
+    os.mkdir(pathName)
 with open(filePath) as f:
     perLink = f.readlines()
 perID = []
@@ -38,6 +44,7 @@ for i in perLink:
     perID.append(postID)
 #Avalon.info(str(perID))
 for i in perID:
-    fileName = str(i) + '.md'
+    childFileName = str(i) + '.md'
+    childPath = os.path.join(pathName,childFileName)
     # fullBehavior(postID=postID, fileName=fileName, onlySeeLZ=False)
-    singleBehavior(postID=i, seeLZ=False, savedFileName=fileName)
+    singleBehavior(postID=i, seeLZ=False, savedFileName=childPath)

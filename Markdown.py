@@ -41,7 +41,7 @@ class markdown():
         elif wrap < 0:
             wrap = 1
         #转换html到Markdown格式函数（按楼层转换）
-        authorInfo = str(resDict['floor']) + '楼|作者:' + resDict['author']
+        authorInfo = str(resDict['floor']) + '楼|作者:' + str(resDict['author'])
         lastInfo = '\n<div style="text-align:right;font-size:12px;color:#CCC;">%s</div>' % authorInfo
         resHTML = etree.HTML(resDict['text'])
         textHTML = resDict['text']

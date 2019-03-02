@@ -147,7 +147,7 @@ class spider():
                 './@data-field')[0])['author']['user_name']
             text = perFloor.xpath('.//cc//div[@id]')
             if not text:
-                Avalon.debug_info(str(floorNum)+str(author))
+                #Avalon.debug_info(str(floorNum)+str(author))
                 continue
             else:
                 text = text[0]
