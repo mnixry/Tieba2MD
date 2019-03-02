@@ -47,7 +47,7 @@ post = api(postID=postID, seeLZ=onlySeeLZ, debug=GENERAL_DEBUG_MODE)
 postInfo = post.getInfo()
 Avalon.time_info('开始任务:"%s"(作者:%s)' %
                  (postInfo['Title'], postInfo['Author']), highlight=True)
-for i in range(1, postInfo['TotalPage']):
+for i in range(1, postInfo['TotalPage']+1):
     Avalon.time_info('开始第%d页,共%d页' % (i, postInfo['TotalPage']))
     try:
         pageHTMLContent = post.getContent(i)

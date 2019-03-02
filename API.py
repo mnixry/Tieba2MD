@@ -39,10 +39,7 @@ class api():
         return ''.join(markdownContent)
 
     def saveToFile(self, fileName: str, convedContent: str):
-        if fileName.split('.')[-1] != 'md':
-            raise NameError
-        fullPath = os.path.join(os.getcwd(), fileName)
-        with open(fullPath, 'wt') as f:
+        with open(fileName, 'wt') as f:
             f.write(convedContent)
         return
 
