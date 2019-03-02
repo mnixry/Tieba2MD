@@ -99,6 +99,9 @@ class spider():
     def getPostInfo(self: None):
         postRaw = self.getPost(pageNumber=1, ajax=False, useTemp=False)
         postGet = etree.HTML(postRaw)
+        if postGet.xpath('//body[@class="page404"]'):
+            Avalon.error('此贴已经被删除!')
+            raise FileNotFoundError
         postTitle = postGet.xpath('//div[@class="wrap2"]//h3/@title')
         postAuthor = postGet.xpath(
             '//div[@class="p_postlist"]/div[@class][1]//div/@author')
@@ -118,8 +121,8 @@ class spider():
         # 将源文件转换为dict类型的数据
         # 如果你没有读过百度贴吧帖子的html源文件，那么你就不要往下看了
         # 看了你也看不明白
-        theradList = etree.HTML(raw)
-        theradList = theradList.xpath(
+        postEtree = etree.HTML(raw)
+        theradList = postEtree.xpath(
             '//div[@class="p_postlist"]/div[@class="p_postlist"]/div[@class]')
         if theradList == []:
             Avalon.critical('程序无法正确获得文章内容')

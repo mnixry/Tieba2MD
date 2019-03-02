@@ -15,14 +15,14 @@ class temp():
     def savePostRaw(self, postRaw: str, pageNumber: int, ext: str = 'html'):
         fullTempName = 'TempSave_%d_%d.%s' % (self.__postID, pageNumber, ext)
         fullTempFilePath = os.path.join(self.__fullTempDir, fullTempName)
-        with open(fullTempFilePath, 'wt') as f:
+        with open(fullTempFilePath, 'wt', encoding='utf-8', errors='ignore') as f:
             f.write(postRaw)
         return fullTempFilePath
 
     def saveJson(self, postInfo, pageNumber: int, ext: str = 'json'):
         fullTempName = 'TempSave_%d_%d.%s' % (self.__postID, pageNumber, ext)
         fullTempFilePath = os.path.join(self.__fullTempDir, fullTempName)
-        with open(fullTempFilePath, 'wt') as f:
+        with open(fullTempFilePath, 'wt', encoding='utf-8', errors='ignore') as f:
             postJson = json.dumps(postInfo)
             f.write(postJson)
         return fullTempFilePath
@@ -41,7 +41,7 @@ class temp():
         return sameTemp
 
     def readFileByPath(self, fullPath: str):
-        with open(fullPath, 'rt') as f:
+        with open(fullPath, 'rt', encoding='utf-8', errors='ignore') as f:
             fileRes = f.read()
         return fileRes
 
