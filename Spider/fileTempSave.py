@@ -40,7 +40,12 @@ class temp():
                 sameTemp[reResult[2]].append(tuple(reResult))
         return sameTemp
 
-    def readFile(self, fullPath: str):
+    def readFileByPath(self, fullPath: str):
         with open(fullPath, 'rt') as f:
             fileRes = f.read()
         return fileRes
+
+    def readFileByID(self, infoTuple: tuple):
+        fullFileName = 'TempSave_%s_%s.%s' % infoTuple
+        fullFilePath = os.path.join(self.__fullTempDir, fullFileName)
+        return self.readFileByPath(fullFilePath)

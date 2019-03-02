@@ -27,7 +27,7 @@ class markdown():
         #Avalon.info('模块Markdown.py已加载')
         pass
 
-    def convert(self: None, resDict: dict, imageBedLinksDict: dict, wrap: int = 1):
+    def convert(self: None, resDict: dict, imageBedLinksDict: dict = {}, wrap: int = 1):
         #这里新增了一个wrap参数用于指定换行符个数
         if type(wrap) != int:
             raise TypeError
@@ -52,8 +52,12 @@ class markdown():
         for img in resHTML.xpath('//img[@class="BDE_Image"]'):
             string = html.unescape(etree.tostring(img).decode())
             imgBedOriginLink = img.xpath('./@src')[0]
-            imgBedLink = imageBedLinksDict[imgBedOriginLink]
-            if imgBedLink == imgBedOriginLink:
+            if imageBedLinksDict:
+                imgBedLink = imageBedLinksDict[imgBedOriginLink]
+                if imgBedLink == imgBedOriginLink:
+                    authorInfo = authorInfo + '|【使用原图】'
+            else:
+                imgBedLink = imgBedOriginLink
                 authorInfo = authorInfo + '|【使用原图】'
             link = '\n![%s](%s)\n' % (authorInfo, imgBedLink)
             textHTML = textHTML.replace(string, link)
