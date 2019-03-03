@@ -4,6 +4,7 @@ import os
 
 
 def singleBehavior(postID: int, savedFileName: str, seeLZ=True, imageBed=True):
+    Avalon.debug_info('创建任务,ID:%d'%postID)
     if os.path.isfile(savedFileName):
         Avalon.time_info('帖子已经下载并保存,跳过[ID:%d]'%postID)
         return True
@@ -11,6 +12,8 @@ def singleBehavior(postID: int, savedFileName: str, seeLZ=True, imageBed=True):
     try:
         postInfo = post.getInfo()
     except FileNotFoundError:
+        return False
+    except SystemExit:
         return False
     Avalon.time_info('开始任务:"%s"(作者:%s)[ID:%d]' %
                      (postInfo['Title'], postInfo['Author'], postID), highlight=True)
@@ -25,6 +28,8 @@ def singleBehavior(postID: int, savedFileName: str, seeLZ=True, imageBed=True):
         except KeyboardInterrupt:
             Avalon.critical('用户强制退出')
             quit(1)
+        except SystemExit:
+            pass
         else:
             lastContext.append(pageMarkdownContent)
     lastContext = ''.join(lastContext)
