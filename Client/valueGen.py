@@ -2,6 +2,7 @@ import random
 import hashlib
 import time
 from urllib import parse
+from .networkRequest import methodGet
 
 
 def getAndroidStamp():
@@ -11,9 +12,9 @@ def getAndroidStamp():
     return fullStamp
 
 
-def getTiebaSign(postData: str):
+def getTiebaSign(postData: bytes):
     md5Algorithm = hashlib.md5()
-    decodedData = str(parse.unquote(string=postData).decode())
+    decodedData = parse.unquote(string=postData.decode())
     decodedData = decodedData.replace('&', '')+'tiebaclient!!!'
     md5Algorithm.update(decodedData.encode())
     fullMD5Value = md5Algorithm.hexdigest()
@@ -23,4 +24,3 @@ def getMD5(data:bytes):
     md5Algorithm = hashlib.md5()
     md5Algorithm.update(data)
     return md5Algorithm.hexdigest()
-
