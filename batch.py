@@ -4,9 +4,9 @@ import os
 
 
 def singleBehavior(postID: int, savedFileName: str, seeLZ=True, imageBed=True):
-    Avalon.debug_info('创建任务,ID:%d'%postID)
+    Avalon.debug_info('创建任务,ID:%d' % postID)
     if os.path.isfile(savedFileName):
-        Avalon.time_info('帖子已经下载并保存,跳过[ID:%d]'%postID)
+        Avalon.time_info('帖子已经下载并保存,跳过[ID:%d]' % postID)
         return True
     post = api(postID=postID, seeLZ=seeLZ)
     try:
@@ -50,6 +50,6 @@ for i in perLink:
 #Avalon.info(str(perID))
 for i in perID:
     childFileName = str(i) + '.md'
-    childPath = os.path.join(pathName,childFileName)
+    childPath = os.path.join(pathName, childFileName)
     # fullBehavior(postID=postID, fileName=fileName, onlySeeLZ=False)
     singleBehavior(postID=i, seeLZ=False, savedFileName=childPath)

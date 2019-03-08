@@ -20,7 +20,8 @@ def getTiebaSign(postData: bytes):
     fullMD5Value = md5Algorithm.hexdigest()
     return fullMD5Value
 
-def getMD5(data:bytes):
+
+def getMD5(data: bytes):
     md5Algorithm = hashlib.md5()
     md5Algorithm.update(data)
     return md5Algorithm.hexdigest()

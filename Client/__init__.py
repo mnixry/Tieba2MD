@@ -2,7 +2,8 @@ from .valueGen import *
 from .networkRequest import *
 import json
 
-def getContext(threadID:int,pageNumber:int=1,reversePost:bool=False):
+
+def getContext(threadID: int, pageNumber: int = 1, reversePost: bool = False):
     requestUrl = 'http://c.tieba.baidu.com/c/f/pb/page'
     postData = {}
     postData['_client_id'] = getAndroidStamp()
@@ -16,8 +17,9 @@ def getContext(threadID:int,pageNumber:int=1,reversePost:bool=False):
         postData['pn'] = str(pageNumber)
     encodedDataToSign = methodEncode(urlData=postData)
     postData['sign'] = getTiebaSign(postData=encodedDataToSign)
-    gotData = methodPost(url=requestUrl,datasEncoded=methodEncode(postData))
+    gotData = methodPost(url=requestUrl, datasEncoded=methodEncode(postData))
     return json.loads(s=gotData.decode())
 
-def getReply(threadID:int,pageNumver:int=1):
+
+def getReply(threadID: int, pageNumver: int = 1):
     pass
