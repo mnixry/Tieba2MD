@@ -48,3 +48,9 @@ def getUser(userName: str):
     requsetUrl = 'http://tieba.baidu.com/home/main?un=%s&fr=home' % userName
     gotData = methodGet(url=requsetUrl)
     return str(gotData.decode(errors='ignore'))
+
+
+def formatJson(originData: str):
+    loadedData = json.loads(originData)
+    formatedData = json.dumps(loadedData, indent=True, ensure_ascii=False)
+    return formatedData
