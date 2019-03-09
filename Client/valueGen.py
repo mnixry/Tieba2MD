@@ -13,12 +13,9 @@ def getAndroidStamp():
 
 
 def getTiebaSign(postData: bytes):
-    md5Algorithm = hashlib.md5()
     decodedData = parse.unquote(string=postData.decode())
     decodedData = decodedData.replace('&', '')+'tiebaclient!!!'
-    md5Algorithm.update(decodedData.encode())
-    fullMD5Value = md5Algorithm.hexdigest()
-    return fullMD5Value
+    return getMD5(decodedData.encode())
 
 
 def getMD5(data: bytes):

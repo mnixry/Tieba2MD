@@ -18,8 +18,30 @@ def getContext(threadID: int, pageNumber: int = 1, reversePost: bool = False):
     encodedDataToSign = methodEncode(urlData=postData)
     postData['sign'] = getTiebaSign(postData=encodedDataToSign)
     gotData = methodPost(url=requestUrl, datasEncoded=methodEncode(postData))
-    return json.loads(s=gotData.decode())
+    return str(gotData.decode(errors='ignore'))
 
 
-def getReply(threadID: int, pageNumver: int = 1):
-    pass
+def getReply(threadID: int, replyID: int, pageNumber: int = 1):
+    requestUrl = 'http://c.tieba.baidu.com/c/f/pb/floor'
+    postData = {'_client_id': getAndroidStamp(),
+                '_client_type': '2',
+                '_client_version': '9.9.8.32',
+                'kz': str(threadID),
+                'pid': str(replyID),
+                'pn': str(pageNumber)}
+    # postData['_client_id'] = getAndroidStamp()
+    # postData['_client_type'] = '2'
+    # postData['_client_version'] = '9.9.8.32'
+    # postData['kz'] = str(threadID)
+    # postData['pid'] = str(replyID)
+    # postData['pn'] = str(pageNumber)
+    encodedDataToSign = methodEncode(urlData=postData)
+    postData['sign'] = getTiebaSign(postData=encodedDataToSign)
+    gotData = methodPost(url=requestUrl, datasEncoded=methodEncode(postData))
+    return str(gotData.decode(errors='ignore'))
+
+
+def getUser(userName: str):
+    requsetUrl = 'http://tieba.baidu.com/home/main?un=%s&fr=home' % userName
+    gotData = methodGet(url=requsetUrl)
+    return str(gotData.decode(errors='ignore'))

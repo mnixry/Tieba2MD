@@ -26,7 +26,7 @@ def methodGet(url: str, headers: dict = {}, maxTryTimes: int = 10):
         Avalon.error(
             'GET "%s" Failed during all request,please check your network status.' % url)
         quit(1)
-    return dataGet
+    return bytes(dataGet)
 
 
 def methodPost(url: str, datasEncoded: bytes, headers: dict = {}, maxTryTimes: int = 10):
@@ -51,7 +51,7 @@ def methodPost(url: str, datasEncoded: bytes, headers: dict = {}, maxTryTimes: i
         Avalon.error(
             'POST "%s" Failed during all request,please check your network status.' % url)
         quit(1)
-    return dataPost
+    return bytes(dataPost)
 
 
 def methodEncode(urlData: dict):
