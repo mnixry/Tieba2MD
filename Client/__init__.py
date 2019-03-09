@@ -5,11 +5,14 @@ import json
 
 def getContext(threadID: int, pageNumber: int = 1, reversePost: bool = False):
     requestUrl = 'http://c.tieba.baidu.com/c/f/pb/page'
-    postData = {}
-    postData['_client_id'] = getAndroidStamp()
-    postData['_client_type'] = '2'
-    postData['_client_version'] = '9.9.8.32'
-    postData['kz'] = str(threadID)
+    postData = {'_client_id': getAndroidStamp(),
+                '_client_type': '2',
+                '_client_version': '9.9.8.32',
+                'kz': str(threadID)}
+    # postData['_client_id'] = getAndroidStamp()
+    # postData['_client_type'] = '2'
+    # postData['_client_version'] = '9.9.8.32'
+    # postData['kz'] = str(threadID)
     if reversePost is True:
         postData['last'] = '1'
         postData['r'] = '1'
