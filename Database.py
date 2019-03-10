@@ -1,5 +1,7 @@
 import sqlite3
 import json
+from threading import _start_new_thread
+from time import sleep
 
 
 class database():
@@ -26,24 +28,34 @@ class database():
             RES BLOB NOT NULL
         )''')
 
+        def commitTimer():
+            while True:
+                self._db.commit()
+                sleep(5)
+        
+        _start_new_thread(commitTimer,tuple())
+
+        
     def checkExistPage(self, pageNumber: int):
         result = self._db.execute(
-            'SELECT (PAGE,RES) FROM POSTPAGE WHERE PAGE = ?;', (pageNumber,))
-        if not list(result):
+            'SELECT PAGE,RES FROM POSTPAGE WHERE PAGE = ?', (pageNumber,))
+        resultList = list(result)
+        # print(str(resultList)[0:50])
+        if not resultList:
             return False
         else:
-            return list(result)[0]
+            return resultList[0]
 
     def writePage(self, pageNumber: int, pageRes: str):
         if self.checkExistPage(pageNumber):
             return False
         self._db.execute(
-            'INSERT INTO POSTPAGE (PAGE,RES) VALUE (?,?)', (pageNumber, pageRes))
+            'INSERT INTO POSTPAGE (PAGE,RES) VALUES (?,?)', (pageNumber, pageRes))
         return self._db.total_changes
 
     def checkExistFloor(self, floorNumber: int):
         result = self._db.execute(
-            'SELECT (FLOOR,REPLYID,PUBTIME,CONTEXT) FROM MAINFLOOR WHERE PAGE = ?;', (floorNumber,))
+            'SELECT FLOOR,REPLYID,PUBTIME,CONTEXT FROM MAINFLOOR WHERE PAGE = ?;', (floorNumber,))
         if not list(result):
             return False
         else:
@@ -52,13 +64,13 @@ class database():
     def writeFloor(self, floorNumber: int, replyID: int, publishTime: int, context: str):
         if self.checkExistFloor(floorNumber):
             return False
-        self._db.execute('INSERT INTO MAINFLOOR (FLOOR,REPLYID,PUBTIME,CONTEXT) VALUE (?,?,?,?)',
+        self._db.execute('INSERT INTO MAINFLOOR (FLOOR,REPLYID,PUBTIME,CONTEXT) VALUES (?,?,?,?)',
                          (floorNumber, replyID, publishTime, context))
         return self._db.total_changes
 
     def checkExistSubFloor(self, publishTime: int):
         result = self._db.execute(
-            'SELECT (PUBTIME,MAINID,CONTEXT) FROM SUBFLOOR WHERE PUBTIME = ?', (publishTime,))
+            'SELECT PUBTIME,MAINID,CONTEXT FROM SUBFLOOR WHERE PUBTIME = ?', (publishTime,))
         if not list(result):
             return False
         else:
@@ -67,13 +79,13 @@ class database():
     def writeSubFloor(self, publishTime: int, mainFloorID: int, context: str):
         if self.checkExistSubFloor(publishTime):
             return False
-        self._db.execute('INSERT INTO SUBFLOOR (PUBTIME,MAINID,CONTEXT) VALUE (?,?,?)',
+        self._db.execute('INSERT INTO SUBFLOOR (PUBTIME,MAINID,CONTEXT) VALUES (?,?,?)',
                          (publishTime, mainFloorID, context))
         return self._db.total_changes
 
     def checkExistImage(self, imageLink: str):
         result = self._db.execute(
-            'SELECT (LINK,RES) FROM IMAGES WHERE LINK = ?', (imageLink,))
+            'SELECT LINK,RES FROM IMAGES WHERE LINK = ?', (imageLink,))
         if not list(result):
             return False
         else:
@@ -83,5 +95,5 @@ class database():
         if self.checkExistImage(imageLink):
             return False
         self._db.execute(
-            'INSERT INTO IMAGES (LINK,RES) VALUE (?,?)', (imageLink, imageRes))
+            'INSERT INTO IMAGES (LINK,RES) VALUES (?,?)', (imageLink, imageRes))
         return self._db.total_changes

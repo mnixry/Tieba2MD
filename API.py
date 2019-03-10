@@ -1,83 +1,71 @@
-from Markdown import markdown
-from Image import image
-from Spider import spider
+import threading
+import json
+import queue
+import time
+from Client import *
+from Database import database
 from avalon_framework import Avalon
-from lxml import etree
-import os
 
 
-class api():
-    def __init__(self, postID: int, seeLZ: bool = True, debug: bool = False):
-        self.__workSpider = spider(postID=postID, seeLZ=seeLZ, debug=debug)
-        self.__workMarkdown = markdown()
-        self.__workImage = image(debug=debug)
+class getThread():
+    def __init__(self, postID: int):
+        self.__db = database(pid=postID)
+        self.__pageNumber = 1
+        self.__tid = postID
 
-    def getInfo(self):
-        self.__postInfo = self.__workSpider.getPostInfo()
-        self.__workMarkdown.setTitle(self.__postInfo['Title'])
-        return self.__postInfo
+    def __getMainThread(self, postID: int, pageNumber: int):
+        context = getContext(threadID=postID, pageNumber=pageNumber)
+        return context
 
-    def getContent(self, pageNumber: int):
-        return self.__workSpider.getPost(pageNumber=pageNumber)
+    def __getSubFloor(self, postID: int, replyID: int, pageNumber: int):
+        context = getReply(threadID=postID, replyID=replyID,
+                           pageNumber=pageNumber)
+        return context
 
-    def __imageBed(self, content: str):
-        imageLinks = etree.HTML(content).xpath(
-            '//img[@class="BDE_Image"]/@src')
-        imageUploadedLinks = self.__workImage.uploadMultiImage(imageLinks)
-        return imageUploadedLinks
+    def multiThreadGetMain(self, threadNumber: int=8):
+        workQueue = queue.Queue()
+        threadLock = threading.Lock()
+        exitFlag = False
+        threadList = []
 
-    def contentToMarkdown(self, content: str, useImageBed: bool = True):
-        markdownContent = []
-        proccessdPost = self.__workSpider.proccessPost(content)
-        if useImageBed is True:
-            imageLinks = self.__imageBed(content=content)
-        elif useImageBed is False:
-            imageLinks = {}
+        def getBehavior(pageNumber: int):
+            Avalon.debug_info('[%s]Thread Start Read Page %s' %
+                              (self.__tid, pageNumber))
+            if self.__db.checkExistPage(pageNumber):
+                Avalon.debug_info(
+                    '[%s]Page %s Had Already Exist in Database.' % (self.__tid, pageNumber))
+                return
+            result = self.__getMainThread(self.__tid, pageNumber)
+            self.__db.writePage(pageNumber, result)
 
-        for i in proccessdPost['Data']:
-            markdownContent.append(self.__workMarkdown.convert(
-                resDict=i, imageBedLinksDict=imageLinks))
-
-        return ''.join(markdownContent)
-
-    def saveToFile(self, fileName: str, convedContent: str):
-        with open(file=fileName, mode='wt', encoding='utf-8', errors='ignore') as f:
-            f.write(convedContent)
-        return
-
-
-"""
-def fullBehavior(postID,fileName,onlySeeLZ=True):
-    markdown = markdown()
-    image = image(debug=GENERAL_DEBUG_MODE)
-    posts = spider(postID=int(postID), seeLZ=onlySeeLZ)
-
-    info = posts.getPostInfo()
-    Avalon.info('帖子标题:%s,帖子作者:%s.' % (info['Title'], info['Author']))
-
-    Avalon.info('程序启动……', highlight=True)
-
-    totalPageNumber = int(posts.getPostInfo()['TotalPage'])
-    finalMarkdown = ''
-
-    try:
-        for pageNumber in range(1, totalPageNumber + 1):
-            Avalon.time_info('[%d]开始进行第%d页,共%d页' %
-                            (postID, pageNumber, totalPageNumber))
-            raw = posts.getPost(int(pageNumber))
-            gotImg = etree.HTML(raw).xpath('//img[@class="BDE_Image"]/@src')
-            if USE_IMAGE_BED:
-                imgLink = image.uploadMultiImage(gotImg)
-            else:
-                imgLink = {}
-                for i in gotImg:
-                    imgLink[i] = str(i)
-            for perFloor in posts.proccessPost(raw):
-                finalMarkdown = finalMarkdown + markdown.convert(perFloor, imgLink)
-    except KeyboardInterrupt:
-        Avalon.critical('用户强制退出')
-    finally:
-        del posts, markdown, image
-        with open(fileName, 'w+', encoding='utf-8') as f:
-            f.write(finalMarkdown)
-"""
+        def mainFloorThread():
+            while not exitFlag:
+                threadLock.acquire()
+                if not workQueue.empty():
+                    pageNumber = workQueue.get()
+                    threadLock.release()
+                    getBehavior(pageNumber)
+                else:
+                    threadLock.release()
+                time.sleep(1)
+        
+        for i in range(threadNumber):
+            newThread = threading.Thread(target=mainFloorThread)
+            newThread.setName('PostThread #%s'%i)
+            newThread.start()
+            threadList.append(newThread)
+        getBehavior(1)
+        dbRead = self.__db.checkExistPage(1)[1]
+        print(str(dbRead)[0:50])
+        print(str(json.loads(dbRead)['page']))
+        totalPages = json.loads(dbRead)['page']['total_page']
+        totalPages = int(totalPages)
+        for i in range(totalPages):
+            workQueue.put(i+1)
+        while not workQueue.empty():
+            time.sleep(1)
+        exitFlag = True
+        for i in threadList:
+            i.join(10)
+        
+        Avalon.info('Get All Pages Success')
