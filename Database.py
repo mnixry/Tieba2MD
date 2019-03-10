@@ -16,11 +16,13 @@ class database():
             FLOOR INTEGER PRIMARY KEY NOT NULL,
             REPLYID INTEGER NOT NULL,
             PUBTIME INTEGER NOT NULL,
+            AUTHOR TEXT NOT NULL,
             CONTEXT BLOB NOT NULL
         );
         CREATE TABLE IF NOT EXISTS SUBFLOOR (
             PUBTIME INTEGER PRIMARY KEY NOT NULL,
             MAINID INTEGER NOT NULL,
+            AUTHOR TEXT NOT NULL,
             CONTEXT BLOB NOT NULL
         );
         CREATE TABLE IF NOT EXISTS IMAGES (
@@ -32,10 +34,9 @@ class database():
             while True:
                 self._db.commit()
                 sleep(5)
-        
-        _start_new_thread(commitTimer,tuple())
 
-        
+        _start_new_thread(commitTimer, tuple())
+
     def checkExistPage(self, pageNumber: int):
         result = self._db.execute(
             'SELECT PAGE,RES FROM POSTPAGE WHERE PAGE = ?', (pageNumber,))
@@ -55,32 +56,32 @@ class database():
 
     def checkExistFloor(self, floorNumber: int):
         result = self._db.execute(
-            'SELECT FLOOR,REPLYID,PUBTIME,CONTEXT FROM MAINFLOOR WHERE PAGE = ?;', (floorNumber,))
+            'SELECT FLOOR,REPLYID,PUBTIME,AUTHOR,CONTEXT FROM MAINFLOOR WHERE PAGE = ?;', (floorNumber,))
         if not list(result):
             return False
         else:
             return list(result)[0]
 
-    def writeFloor(self, floorNumber: int, replyID: int, publishTime: int, context: str):
+    def writeFloor(self, floorNumber: int, replyID: int, publishTime: int, author: str, context: str):
         if self.checkExistFloor(floorNumber):
             return False
-        self._db.execute('INSERT INTO MAINFLOOR (FLOOR,REPLYID,PUBTIME,CONTEXT) VALUES (?,?,?,?)',
-                         (floorNumber, replyID, publishTime, context))
+        self._db.execute('INSERT INTO MAINFLOOR (FLOOR,REPLYID,PUBTIME,AUTHOR,CONTEXT) VALUES (?,?,?,?,?)',
+                         (floorNumber, replyID, publishTime, author, context))
         return self._db.total_changes
 
     def checkExistSubFloor(self, publishTime: int):
         result = self._db.execute(
-            'SELECT PUBTIME,MAINID,CONTEXT FROM SUBFLOOR WHERE PUBTIME = ?', (publishTime,))
+            'SELECT PUBTIME,MAINID,AUTHOR,CONTEXT FROM SUBFLOOR WHERE PUBTIME = ?', (publishTime,))
         if not list(result):
             return False
         else:
             return list(result)[0]
 
-    def writeSubFloor(self, publishTime: int, mainFloorID: int, context: str):
+    def writeSubFloor(self, publishTime: int, mainFloorID: int, author: str, context: str):
         if self.checkExistSubFloor(publishTime):
             return False
-        self._db.execute('INSERT INTO SUBFLOOR (PUBTIME,MAINID,CONTEXT) VALUES (?,?,?)',
-                         (publishTime, mainFloorID, context))
+        self._db.execute('INSERT INTO SUBFLOOR (PUBTIME,MAINID,AUTHOR,CONTEXT) VALUES (?,?,?,?)',
+                         (publishTime, mainFloorID, author, context))
         return self._db.total_changes
 
     def checkExistImage(self, imageLink: str):

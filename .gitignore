@@ -4,7 +4,7 @@ __pycache__/
 *temp*/
 test*
 *.md
-*.db
+*.db*
 *.json
 *.py[cod]
 *$py.class

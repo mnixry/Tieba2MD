@@ -22,7 +22,7 @@ class getThread():
                            pageNumber=pageNumber)
         return context
 
-    def multiThreadGetMain(self, threadNumber: int=8):
+    def multiThreadGetMain(self, threadNumber: int = 8):
         workQueue = queue.Queue()
         threadLock = threading.Lock()
         exitFlag = False
@@ -48,16 +48,14 @@ class getThread():
                 else:
                     threadLock.release()
                 time.sleep(1)
-        
+
         for i in range(threadNumber):
             newThread = threading.Thread(target=mainFloorThread)
-            newThread.setName('PostThread #%s'%i)
+            newThread.setName('PostThread #%s' % i)
             newThread.start()
             threadList.append(newThread)
         getBehavior(1)
         dbRead = self.__db.checkExistPage(1)[1]
-        print(str(dbRead)[0:50])
-        print(str(json.loads(dbRead)['page']))
         totalPages = json.loads(dbRead)['page']['total_page']
         totalPages = int(totalPages)
         for i in range(totalPages):
@@ -66,6 +64,32 @@ class getThread():
             time.sleep(1)
         exitFlag = True
         for i in threadList:
-            i.join(10)
-        
-        Avalon.info('Get All Pages Success')
+            i.join()
+        Avalon.info('[%s]Get All Pages Success' % self.__tid)
+    
+    def convDataToPerFloor(self):
+        dbGot = json.loads(self.__db.checkExistPage(1)[1])
+        totalPage = dbGot['page']['total_page']
+
+        def getNameInPage(userID:int,pageNumber:int):
+            gotData = dbGot
+            for i in gotData['user_list']:
+                if int(i['id']) == userID:
+                    userName = str(i['name'])
+                    break
+            else:
+                userName = ''
+
+            return userName
+
+        for i in range(totalPage):
+            gotData = dbGot
+            for i in gotData['post_list']:
+                replyID = int(i['id'])
+                floorNumber = int(i['floor'])
+                publishTime = int(i['time'])
+                userID = int(i['author_id'])
+                userName = str(getNameInPage(userID,i+1))
+                context = str(json.dumps(i))
+                self.__db.writeFloor(floorNumber,replyID,publishTime,userName,context)
+            Avalon.debug_info('[%s]Floor Info at Page %s Finished.'%(self.__tid,i+1))
