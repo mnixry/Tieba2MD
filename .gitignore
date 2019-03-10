@@ -5,6 +5,7 @@ __pycache__/
 test*
 *.md
 *.db
+*.json
 *.py[cod]
 *$py.class
 *.txt
