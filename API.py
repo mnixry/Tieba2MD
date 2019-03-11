@@ -47,7 +47,7 @@ class getThread():
                     getBehavior(pageNumber)
                 else:
                     threadLock.release()
-                time.sleep(1)
+                    time.sleep(1)
 
         for i in range(threadNumber):
             newThread = threading.Thread(target=mainFloorThread)
@@ -66,30 +66,38 @@ class getThread():
         for i in threadList:
             i.join()
         Avalon.info('[%s]Get All Pages Success' % self.__tid)
-    
+        self.__db.commitNow()
+
     def convDataToPerFloor(self):
         dbGot = json.loads(self.__db.checkExistPage(1)[1])
-        totalPage = dbGot['page']['total_page']
+        totalPage = int(dbGot['page']['total_page'])
 
-        def getNameInPage(userID:int,pageNumber:int):
-            gotData = dbGot
+        def getNameInPage(userID: int, pageNumber: int, gotData: dict):
             for i in gotData['user_list']:
                 if int(i['id']) == userID:
-                    userName = str(i['name'])
-                    break
+                    if userID < 0:
+                        userName = i.get('name_show', '')
+                    userName = i.get('name', '')
             else:
                 userName = ''
+            if not userName:
+                Avalon.debug(
+                    'Failed to Get Username,Will use UserID %s instead.' % userID)
+                userName = str(userID)
 
             return userName
 
-        for i in range(totalPage):
-            gotData = dbGot
+        for pageNum in range(totalPage):
+            gotData = json.loads(self.__db.checkExistPage(pageNum+1)[1])
             for i in gotData['post_list']:
                 replyID = int(i['id'])
                 floorNumber = int(i['floor'])
                 publishTime = int(i['time'])
                 userID = int(i['author_id'])
-                userName = str(getNameInPage(userID,i+1))
+                userName = str(getNameInPage(userID, pageNum+1, gotData))
                 context = str(json.dumps(i))
-                self.__db.writeFloor(floorNumber,replyID,publishTime,userName,context)
-            Avalon.debug_info('[%s]Floor Info at Page %s Finished.'%(self.__tid,i+1))
+                self.__db.writeFloor(floorNumber, replyID,
+                                     publishTime, userName, context)
+            totalChange = self.__db.commitNow()
+            Avalon.debug_info('[%s]Floor Info at Page %s Finished.Database Changed %s Record' % (
+                self.__tid, pageNum+1, totalChange))
