@@ -1,6 +1,6 @@
 import sqlite3
 import json
-from threading import _start_new_thread
+import threading
 from time import sleep
 
 
@@ -22,7 +22,7 @@ class database():
         CREATE TABLE IF NOT EXISTS SUBPAGE (
             REPLYINFO TEXT PRIMARY KEY NOT NULL,
             RES BLOB NOT NULL
-        )
+        );
         CREATE TABLE IF NOT EXISTS SUBFLOOR (
             PUBTIME INTEGER PRIMARY KEY NOT NULL,
             MAINID INTEGER NOT NULL,
@@ -39,12 +39,16 @@ class database():
             RES BLOB NOT NULL
         )''')
 
+        self.autoCommitFlag = True
+        self.__threadLock = threading.Lock()
+
         def commitTimer():
             while True:
-                self._db.commit()
-                sleep(5)
+                if self.autoCommitFlag:
+                    self.commitNow()
+                sleep(2)
 
-        _start_new_thread(commitTimer, tuple())
+        threading._start_new_thread(commitTimer, tuple())
 
     def checkExistPage(self, pageNumber: int):
         result = self._db.execute(
@@ -143,7 +147,9 @@ class database():
         return self._db.total_changes
 
     def commitNow(self):
+        self.__threadLock.acquire()
         self._db.commit()
+        self.__threadLock.release()
         return self._db.total_changes
 
     def __del__(self):

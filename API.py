@@ -23,38 +23,42 @@ class getThread():
         return context
 
     def multiThreadGetMain(self, threadNumber: int = 8):
+        self.__db.autoCommitFlag = False
         workQueue = queue.Queue()
         threadLock = threading.Lock()
         exitFlag = False
         threadList = []
 
-        def getBehavior(pageNumber: int):
-            Avalon.debug_info('[%s]Thread Start Read Page %s' %
-                              (self.__tid, pageNumber))
+        def getBehavior(pageNumber: int, threadName: str = ''):
+            Avalon.debug_info('[%s]Thread "%s" Start Read Page %s' %
+                              (self.__tid, threadName, pageNumber))
             if self.__db.checkExistPage(pageNumber):
                 Avalon.debug_info(
                     '[%s]Page %s Had Already Exist in Database.' % (self.__tid, pageNumber))
                 return
             result = self.__getMainThread(self.__tid, pageNumber)
             self.__db.writePage(pageNumber, result)
+            self.__db.commitNow()
 
-        def mainFloorThread():
+        def mainFloorThread(name: str = ''):
             while not exitFlag:
                 threadLock.acquire()
                 if not workQueue.empty():
                     pageNumber = workQueue.get()
                     threadLock.release()
-                    getBehavior(pageNumber)
+                    getBehavior(pageNumber, name)
                 else:
                     threadLock.release()
                     time.sleep(1)
 
         for i in range(threadNumber):
-            newThread = threading.Thread(target=mainFloorThread)
-            newThread.setName('PostThread #%s' % i)
+            threadName = 'PostThread #%s' % i
+            newThread = threading.Thread(
+                target=mainFloorThread, args=(threadName,))
+            newThread.setName(threadName)
             newThread.start()
             threadList.append(newThread)
-        getBehavior(1)
+        getBehavior(1, threadName='PreSetThread')
         dbRead = self.__db.checkExistPage(1)[1]
         totalPages = json.loads(dbRead)['page']['total_page']
         totalPages = int(totalPages)
@@ -67,31 +71,47 @@ class getThread():
             i.join()
         Avalon.info('[%s]Get All Pages Success' % self.__tid)
         self.__db.commitNow()
+        self.__db.autoCommitFlag = True
 
     def convDataToPerFloor(self):
         dbGot = json.loads(self.__db.checkExistPage(1)[1])
         totalPage = int(dbGot['page']['total_page'])
 
-        def writePageNameToDatabase(gotData:dict):
+        def writePageNameToDatabase(gotData: dict):
             for i in gotData['user_list']:
                 userID = int(i['id'])
-                userName = str(i.get('name',''))
+                userName = str(i.get('name', ''))
                 if not userName:
-                    userName = str(i.get('name_show',''))
+                    userName = str(i.get('name_show', ''))
                     if not userName:
                         userName = str(userID)
                 userData = json.dumps(i)
-                self.__db.writeUsers(userID,userName,userData)
+                self.__db.writeUsers(userID, userName, userData)
             self.__db.commitNow()
 
+        def getUserName(userID: int):
+            dbResult = self.__db.checkExistUsers(userID)
+            if not dbResult:
+                Avalon.debug(
+                    'User ID: %s Can\'t Get Username,Will Use ID Instead.')
+                userName = str(userID)
+            else:
+                userName = str(dbResult[1])
+            return userName
+
         for pageNum in range(totalPage):
-            gotData = json.loads(self.__db.checkExistPage(pageNum+1)[1])
+            gotData = self.__db.checkExistPage(pageNum+1)
+            if not gotData:
+                Avalon.error('Can\'t Get Page %s,Skip' % pageNum)
+                continue
+            gotData = json.loads(gotData[1])
+            writePageNameToDatabase(gotData)
             for i in gotData['post_list']:
                 replyID = int(i['id'])
                 floorNumber = int(i['floor'])
                 publishTime = int(i['time'])
                 userID = int(i['author_id'])
-                #userName = str(getNameInPage(userID, pageNum+1, gotData))
+                userName = getUserName(userID)
                 context = str(json.dumps(i))
                 self.__db.writeFloor(floorNumber, replyID,
                                      publishTime, userName, context)
