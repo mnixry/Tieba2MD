@@ -147,5 +147,5 @@ class database():
         return self._db.total_changes
 
     def __del__(self):
-        self._db.commit()
+        self.commitNow()
         return

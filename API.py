@@ -72,20 +72,17 @@ class getThread():
         dbGot = json.loads(self.__db.checkExistPage(1)[1])
         totalPage = int(dbGot['page']['total_page'])
 
-        def getNameInPage(userID: int, pageNumber: int, gotData: dict):
+        def writePageNameToDatabase(gotData:dict):
             for i in gotData['user_list']:
-                if int(i['id']) == userID:
-                    if userID < 0:
-                        userName = i.get('name_show', '')
-                    userName = i.get('name', '')
-            else:
-                userName = ''
-            if not userName:
-                Avalon.debug(
-                    'Failed to Get Username,Will use UserID %s instead.' % userID)
-                userName = str(userID)
-
-            return userName
+                userID = int(i['id'])
+                userName = str(i.get('name',''))
+                if not userName:
+                    userName = str(i.get('name_show',''))
+                    if not userName:
+                        userName = str(userID)
+                userData = json.dumps(i)
+                self.__db.writeUsers(userID,userName,userData)
+            self.__db.commitNow()
 
         for pageNum in range(totalPage):
             gotData = json.loads(self.__db.checkExistPage(pageNum+1)[1])
@@ -94,7 +91,7 @@ class getThread():
                 floorNumber = int(i['floor'])
                 publishTime = int(i['time'])
                 userID = int(i['author_id'])
-                userName = str(getNameInPage(userID, pageNum+1, gotData))
+                #userName = str(getNameInPage(userID, pageNum+1, gotData))
                 context = str(json.dumps(i))
                 self.__db.writeFloor(floorNumber, replyID,
                                      publishTime, userName, context)
