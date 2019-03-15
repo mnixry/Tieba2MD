@@ -2,7 +2,7 @@ import sqlite3
 import json
 import threading
 from time import sleep
-
+from Queue import Queue
 
 class database():
     def __init__(self, pid: int):
@@ -50,6 +50,8 @@ class database():
 
         threading._start_new_thread(commitTimer, tuple())
 
+        self.queue = Queue()
+
     def checkExistPage(self, pageNumber: int):
         result = self._db.execute(
             'SELECT PAGE,RES FROM POSTPAGE WHERE PAGE = ?', (pageNumber,))
@@ -62,9 +64,7 @@ class database():
     def writePage(self, pageNumber: int, pageRes: str):
         if self.checkExistPage(pageNumber):
             return False
-        self._db.execute(
-            'INSERT INTO POSTPAGE (PAGE,RES) VALUES (?,?)', (pageNumber, pageRes))
-        return self._db.total_changes
+        self.queue.put(('INSERT INTO POSTPAGE (PAGE,RES) VALUES (?,?)', (pageNumber, pageRes)))
 
     def checkExistFloor(self, floorNumber: int):
         result = self._db.execute(
@@ -78,9 +78,8 @@ class database():
     def writeFloor(self, floorNumber: int, replyID: int, publishTime: int, author: str, context: str):
         if self.checkExistFloor(floorNumber):
             return False
-        self._db.execute('INSERT INTO MAINFLOOR (FLOOR,REPLYID,PUBTIME,AUTHOR,CONTEXT) VALUES (?,?,?,?,?)',
-                         (floorNumber, replyID, publishTime, author, context))
-        return self._db.total_changes
+        self.queue.put(('INSERT INTO MAINFLOOR (FLOOR,REPLYID,PUBTIME,AUTHOR,CONTEXT) VALUES (?,?,?,?,?)',
+            (floorNumber, replyID, publishTime, author, context)))
 
     def checkExistSubPage(self, replyInfo: str):
         result = self._db.execute(
@@ -110,9 +109,8 @@ class database():
     def writeSubFloor(self, publishTime: int, mainFloorID: int, author: str, context: str):
         if self.checkExistSubFloor(publishTime):
             return False
-        self._db.execute('INSERT INTO SUBFLOOR (PUBTIME,MAINID,AUTHOR,CONTEXT) VALUES (?,?,?,?)',
-                         (publishTime, mainFloorID, author, context))
-        return self._db.total_changes
+        self.queue.put(('INSERT INTO SUBFLOOR (PUBTIME,MAINID,AUTHOR,CONTEXT) VALUES (?,?,?,?)',
+            (publishTime, mainFloorID, author, context)))
 
     def checkExistUsers(self, userID: int):
         result = self._db.execute(
@@ -142,6 +140,14 @@ class database():
     def writeImage(self, imageLink: str, imageRes: bytes):
         if self.checkExistImage(imageLink):
             return False
+
+        self.queue.put(('INSERT INTO IMAGES (LINK,RES) VALUES (?,?)', (imageLink, imageRes)))
+
+    def executeCommand(self):
+
+        while True:
+            self._db.execute(*self.queue.get())
+            yield self._db.total_changes
         self._db.execute(
             'INSERT INTO IMAGES (LINK,RES) VALUES (?,?)', (imageLink, imageRes))
         return self._db.total_changes
