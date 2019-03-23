@@ -12,6 +12,13 @@ class getThread():
         self.__db = database(pid=postID)
         self.__pageNumber = 1
         self.__tid = postID
+        self.__executeCommand = self.__db.executeCommand()
+
+        def autoWrite():
+            while True:
+                self.__dbTotalChange = next(self.__executeCommand)
+
+        threading._start_new_thread(autoWrite, tuple())
 
     def __getMainThread(self, postID: int, pageNumber: int):
         context = getContext(threadID=postID, pageNumber=pageNumber)
@@ -23,7 +30,6 @@ class getThread():
         return context
 
     def multiThreadGetMain(self, threadNumber: int = 8):
-        self.__db.autoCommitFlag = False
         workQueue = queue.Queue()
         threadLock = threading.Lock()
         exitFlag = False
@@ -38,7 +44,6 @@ class getThread():
                 return
             result = self.__getMainThread(self.__tid, pageNumber)
             self.__db.writePage(pageNumber, result)
-            self.__db.commitNow()
 
         def mainFloorThread(name: str = ''):
             while not exitFlag:
@@ -71,7 +76,6 @@ class getThread():
             i.join()
         Avalon.info('[%s]Get All Pages Success' % self.__tid)
         self.__db.commitNow()
-        self.__db.autoCommitFlag = True
 
     def convDataToPerFloor(self):
         dbGot = json.loads(self.__db.checkExistPage(1)[1])
@@ -87,13 +91,12 @@ class getThread():
                         userName = str(userID)
                 userData = json.dumps(i)
                 self.__db.writeUsers(userID, userName, userData)
-            self.__db.commitNow()
 
         def getUserName(userID: int):
             dbResult = self.__db.checkExistUsers(userID)
             if not dbResult:
                 Avalon.debug(
-                    'User ID: %s Can\'t Get Username,Will Use ID Instead.')
+                    'User ID: %s Can\'t Get Username,Will Use ID Instead.'%userID)
                 userName = str(userID)
             else:
                 userName = str(dbResult[1])
@@ -115,6 +118,7 @@ class getThread():
                 context = str(json.dumps(i))
                 self.__db.writeFloor(floorNumber, replyID,
                                      publishTime, userName, context)
-            totalChange = self.__db.commitNow()
+            #totalChange = self.__db.commitNow()
+            totalChange = self.__db.getTotalChange()
             Avalon.debug_info('[%s]Floor Info at Page %s Finished.Database Changed %s Record' % (
                 self.__tid, pageNum+1, totalChange))
