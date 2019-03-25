@@ -41,14 +41,16 @@ class database():
         )''')
 
         self.autoCommitFlag = True
-        self.__threadLock = threading.Lock()
+        self.__waitForCommit = 0
 
         def commitTimer():
             while True:
-                if self.autoCommitFlag:
-                    self.commitNow()
-                sleep(2)
-
+                if self.autoCommitFlag is True:
+                    if self.__waitForCommit:
+                        self._db.commit()
+                        self.__waitForCommit = 0
+                    else:
+                        sleep(0.001)
         threading._start_new_thread(commitTimer, tuple())
 
         self.queue = Queue()
@@ -148,15 +150,5 @@ class database():
     def executeCommand(self):
         while True:
             self._db.execute(*self.queue.get())
-            self.commitNow()
+            self.__waitForCommit += 1
             yield self._db.total_changes
-
-    def commitNow(self):
-        self.__threadLock.acquire()
-        self._db.commit()
-        self.__threadLock.release()
-        return self._db.total_changes
-
-    def __del__(self):
-        self.commitNow()
-        return

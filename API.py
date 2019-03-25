@@ -16,8 +16,7 @@ class getThread():
 
         def autoWrite():
             while True:
-                self.__dbTotalChange = next(self.__executeCommand)
-
+                next(self.__executeCommand)
         threading._start_new_thread(autoWrite, tuple())
 
     def __getMainThread(self, postID: int, pageNumber: int):
@@ -29,29 +28,51 @@ class getThread():
                            pageNumber=pageNumber)
         return context
 
+    def __getPostBehavior(self, pageNumber: int, threadName: str):
+        Avalon.debug_info('[%s]Thread "%s" Start Read Page %s' %
+                          (self.__tid, threadName, pageNumber))
+        if self.__db.checkExistPage(pageNumber):
+            Avalon.debug_info(
+                '[%s]Page %s Had Already Exist in Database.' % (self.__tid, pageNumber))
+            return
+        result = self.__getMainThread(self.__tid, pageNumber)
+        self.__db.writePage(pageNumber, result)
+        return self.__db.getTotalChange()
+
+    def __writePageUserNameToDatabase(self, gotData: dict):
+        for i in gotData['user_list']:
+            userID = int(i['id'])
+            userName = str(i.get('name', ''))
+            if not userName:
+                userName = str(i.get('name_show', ''))
+                if not userName:
+                    userName = str(userID)
+            userData = json.dumps(i)
+            self.__db.writeUsers(userID, userName, userData)
+
+    def __getUserName(self, userID: str):
+        dbResult = self.__db.checkExistUsers(userID)
+        if not dbResult:
+            Avalon.debug(
+                'User ID: %s Can\'t Get Username,Will Use ID Instead.' % userID)
+            userName = str(userID)
+        else:
+            userName = str(dbResult[1])
+        return userName
+
     def multiThreadGetMain(self, threadNumber: int = 8):
-        workQueue = queue.Queue()
+        workQueue = queue.Queue(threadNumber)
         threadLock = threading.Lock()
         exitFlag = False
         threadList = []
 
-        def getBehavior(pageNumber: int, threadName: str = ''):
-            Avalon.debug_info('[%s]Thread "%s" Start Read Page %s' %
-                              (self.__tid, threadName, pageNumber))
-            if self.__db.checkExistPage(pageNumber):
-                Avalon.debug_info(
-                    '[%s]Page %s Had Already Exist in Database.' % (self.__tid, pageNumber))
-                return
-            result = self.__getMainThread(self.__tid, pageNumber)
-            self.__db.writePage(pageNumber, result)
-
-        def mainFloorThread(name: str = ''):
+        def mainFloorThread(name: str = 'Untitled'):
             while not exitFlag:
                 threadLock.acquire()
                 if not workQueue.empty():
                     pageNumber = workQueue.get()
                     threadLock.release()
-                    getBehavior(pageNumber, name)
+                    self.__getPostBehavior(pageNumber, name)
                 else:
                     threadLock.release()
                     time.sleep(1)
@@ -63,10 +84,13 @@ class getThread():
             newThread.setName(threadName)
             newThread.start()
             threadList.append(newThread)
-        getBehavior(1, threadName='PreSetThread')
+
+        self.__getPostBehavior(1, threadName='PreSetThread')
         dbRead = self.__db.checkExistPage(1)[1]
-        totalPages = json.loads(dbRead)['page']['total_page']
-        totalPages = int(totalPages)
+        if not dbRead:
+            Avalon.critical('Can\'t Get Page 1,Program Exit!')
+            quit(1)
+        totalPages = int(json.loads(dbRead)['page']['total_page'])
         for i in range(totalPages):
             workQueue.put(i+1)
         while not workQueue.empty():
@@ -75,50 +99,29 @@ class getThread():
         for i in threadList:
             i.join()
         Avalon.info('[%s]Get All Pages Success' % self.__tid)
-        self.__db.commitNow()
 
     def convDataToPerFloor(self):
         dbGot = json.loads(self.__db.checkExistPage(1)[1])
         totalPage = int(dbGot['page']['total_page'])
-
-        def writePageNameToDatabase(gotData: dict):
-            for i in gotData['user_list']:
-                userID = int(i['id'])
-                userName = str(i.get('name', ''))
-                if not userName:
-                    userName = str(i.get('name_show', ''))
-                    if not userName:
-                        userName = str(userID)
-                userData = json.dumps(i)
-                self.__db.writeUsers(userID, userName, userData)
-
-        def getUserName(userID: int):
-            dbResult = self.__db.checkExistUsers(userID)
-            if not dbResult:
-                Avalon.debug(
-                    'User ID: %s Can\'t Get Username,Will Use ID Instead.'%userID)
-                userName = str(userID)
-            else:
-                userName = str(dbResult[1])
-            return userName
 
         for pageNum in range(totalPage):
             gotData = self.__db.checkExistPage(pageNum+1)
             if not gotData:
                 Avalon.error('Can\'t Get Page %s,Skip' % pageNum)
                 continue
+
             gotData = json.loads(gotData[1])
-            writePageNameToDatabase(gotData)
+            self.__writePageUserNameToDatabase(gotData)
             for i in gotData['post_list']:
                 replyID = int(i['id'])
                 floorNumber = int(i['floor'])
                 publishTime = int(i['time'])
                 userID = int(i['author_id'])
-                userName = getUserName(userID)
+                userName = self.__getUserName(userID)
                 context = str(json.dumps(i))
                 self.__db.writeFloor(floorNumber, replyID,
                                      publishTime, userName, context)
-            #totalChange = self.__db.commitNow()
+
             totalChange = self.__db.getTotalChange()
             Avalon.debug_info('[%s]Floor Info at Page %s Finished.Database Changed %s Record' % (
                 self.__tid, pageNum+1, totalChange))
