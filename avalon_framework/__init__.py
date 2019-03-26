@@ -8,33 +8,50 @@ getting user input easier it includes most UNIX terminal background
 and foreground colors.
 
 Name: Avalon Framework
-Author: K4T
+Author: K4YT3X
 Date Created: March 20, 2017
-Last Modified: October 19, 2018
+Last Modified: March 22, 2019
 
 Licensed under the GNU Lesser General Public License Version 3 (GNU LGPL v3),
     available at: https://www.gnu.org/licenses/lgpl-3.0.txt
 
-(C) 2017 - 2018 K4YT3X
+(C) 2017 - 2019 K4YT3X
 """
 import sys
-from .fakePrint import fakePrint
+import threading
 
+# if system is windows, initialize colorama
+# which translates Unix console color sequences
+# into windows color sequences
 if sys.platform == 'win32':
     from colorama import init
     init()
 else:
     import syslog
 
-VERSION = '1.6.2'
+VERSION = '1.7.1'
 
 
 class Avalon:
+    """ Avalon Standard Input/Output Framework
+
+    The avalon framework provides convenient and beautiful methods
+    to handle command line user input or program output. It's based on
+    Unix console colors, and is made compatible with the Windows platform
+    with the colorama library.
+    """
+
+    # optional thread lock
+    thread_lock = None
 
     class FG():
+        """ Foreground Colors
+
+        This class contains all foreground colors.
+        Access colors via Avalon.FG.Color.
         """
-            Foreground Color
-        """
+
+        # Standard colors
         BL = '\033[30m'  # Black
         R = '\033[31m'  # Red
         G = '\033[32m'  # Green
@@ -42,6 +59,8 @@ class Avalon:
         B = '\033[34m'  # Blue
         M = '\033[35m'  # Magenta
         C = '\033[36m'  # Cyan
+
+        # Light colors
         LGR = '\033[37m'  # Light Grey
         DGR = '\033[90m'  # Dark Grey
         LR = '\033[91m'  # Light Red
@@ -53,8 +72,10 @@ class Avalon:
         W = '\033[97m'  # White
 
     class BG():
-        """
-            Background Color
+        """ Foreground Colors
+
+        This class contains all background colors.
+        Access colors via Avalon.BG.Colors.
         """
         BL = '\033[40m'  # Black
         R = '\033[41m'  # Red
@@ -74,8 +95,11 @@ class Avalon:
         WT = '\033[107m'  # White
 
     class FM():
-        """
-            Formatting
+        """ Formatting Sequences
+
+        This class contains all formatting-related
+        sequences, such as bold or italic.
+        Access formats via Avalon.FM.Color.
         """
         # SET
         BD = '\033[1m'  # Bold
@@ -94,67 +118,103 @@ class Avalon:
         RRV = '\033[27m'  # Reverse
         RHD = '\033[28m'  # Hidden
 
-    def info(msg, log=False, highlight=False):
-        if highlight == True:
-            style = Avalon.FG.LG + Avalon.FM.BD
-        elif highlight == False:
-            style = Avalon.FG.G + Avalon.FM.BD
+    @staticmethod
+    def _print(msg, file):
+        """ thread-safe print method
+
+        This is a simple thread-safe print method. If a thread lock
+        is provided, then the lock will be acquired before printing the
+        message, and will be released after printing the message.
+
+        Arguments:
+            msg {string} -- message to print
+
+        Keyword Arguments:
+            thread_lock {threading.Lock()} -- thread lock to use (default: {None})
+        """
+        if isinstance(threading.Lock(), type(Avalon.thread_lock)):
+            Avalon.thread_lock.acquire()
+            print(msg, file=file)
+            Avalon.thread_lock.release()
         else:
-            raise TypeError('invalid type for positional argument: \' default\'')
-        fakePrint('{}[INFO] {}{}'.format(style, str(msg), Avalon.FM.RST))
+            print(msg)
+
+    @staticmethod
+    def info(msg, log=False, file=sys.stdout):
+        """ print regular information
+        """
+        Avalon._print('{}[+] INFO: {}{}'.format(Avalon.FG.G, str(msg), Avalon.FM.RST), file)
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_INFO, msg)
 
-    def time_info(msg, log=False, highlight=False):
-        if highlight == True:
-            style = Avalon.FG.LG + Avalon.FM.BD
-        elif highlight == False:
-            style = Avalon.FG.G
-        else:
-            raise TypeError('invalid type for positional argument: \' default\'')
+    @staticmethod
+    def time_info(msg, log=False, file=sys.stdout):
+        """ print regular information with time stamp
+        """
         import datetime
-        fakePrint('{}[{}]{}[INFO] {}{}'.format(Avalon.FM.RST, str((datetime.datetime.now()).time()), style, str(msg), Avalon.FM.RST))
+        Avalon._print('{}{}{} [+] INFO: {}{}'.format(Avalon.FM.RST, str(datetime.datetime.now()), Avalon.FG.G, str(msg), Avalon.FM.RST), file)
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_INFO, msg)
 
-    def debug_info(msg, log=True):
+    @staticmethod
+    def debug_info(msg, log=True, file=sys.stderr):
+        """ print information fo debugging
+        """
         import datetime
-        fakePrint('{}[{}][INFO] {}{}'.format(Avalon.FG.DGR, str((datetime.datetime.now()).time()), str(msg), Avalon.FM.RST))
+        Avalon._print('{}{} [+] INFO: {}{}'.format(Avalon.FG.DGR, str(datetime.datetime.now()), str(msg), Avalon.FM.RST), file)
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_DEBUG, msg)
 
-    def warning(msg, log=True):
-        fakePrint('{}{}[WARNING] {}{}'.format(Avalon.FG.Y, Avalon.FM.BD, str(msg), Avalon.FM.RST))
+    @staticmethod
+    def warning(msg, log=False, file=sys.stderr):
+        """ print a warning message
+        """
+        Avalon._print('{}{}[!] WARNING: {}{}'.format(Avalon.FG.Y, Avalon.FM.BD, str(msg), Avalon.FM.RST), file)
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_WARNING, msg)
 
-    def error(msg, log=True):
-        fakePrint('{}{}[ERROR] {}{}'.format(Avalon.FG.R, Avalon.FM.BD, str(msg), Avalon.FM.RST))
+    @staticmethod
+    def error(msg, log=True, file=sys.stderr):
+        """ print an error message
+        """
+        Avalon._print('{}{}[!] ERROR: {}{}'.format(Avalon.FG.R, Avalon.FM.BD, str(msg), Avalon.FM.RST), file)
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_WARNING, msg)
 
-    def critical(msg, log=True):
-            fakePrint('{}{}{}[CRITICAL] {}{}'.format(Avalon.BG.LR, Avalon.FM.BD, Avalon.FG.W,str(msg), Avalon.FM.RST))
-            if log and sys.platform != 'win32':
-                syslog.syslog(syslog.LOG_WARNING, msg)
-
-    def debug(msg, log=True):
-        fakePrint('{}{}[DEBUG] {}{}'.format(Avalon.FG.R, Avalon.FM.RDM, str(msg), Avalon.FM.RST))
+    @staticmethod
+    def debug(msg, log=True, file=sys.stderr):
+        """ print a debug message
+        """
+        Avalon._print('{}{}[*] DEBUG: {}{}'.format(Avalon.FG.R, Avalon.FM.RDM, str(msg), Avalon.FM.RST), file)
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_DEBUG, msg)
 
-    def gets(msg):
-        fakePrint('{}{}[USER]:{}{}'.format(Avalon.FG.Y, Avalon.FM.BD, msg, Avalon.FM.RST),end='')
+    @staticmethod
+    def gets(msg, default=None, batch=False, file=sys.stdout):
+        """ Gets user input as a string
+        """
+
+        # if batch is set, return the default value
+        if batch:
+            return default
+
+        print('{}{}[?] USER: {}{}'.format(Avalon.FG.Y, Avalon.FM.BD, msg, Avalon.FM.RST), end='', file=file)
         return input()
 
-    def ask(msg, default=False):
+    @staticmethod
+    def ask(msg, default=False, batch=False):
         """ Gets a True / False answer from user
 
         This method will ask user a question that will
         require a true / false answer. Pressing enter without
         entering anything will return the default value.
         """
-        if default is False:
+
+        # if batch is set, return the default value
+        if batch:
+            return default
+
+        elif default is False:
             while True:
                 ans = Avalon.gets(msg + ' [y/N]: ')
                 if ans == '' or ans[0].upper() == 'N':
@@ -162,7 +222,7 @@ class Avalon:
                 elif ans[0].upper() == 'Y':
                     return True
                 else:
-                    Avalon.warning('Invalid Input!')
+                    Avalon.error('Invalid Input!')
         elif default is True:
             while True:
                 ans = Avalon.gets(msg + ' [Y/n]: ')
@@ -171,6 +231,6 @@ class Avalon:
                 elif ans[0].upper() == 'N':
                     return False
                 else:
-                    Avalon.warning('Invalid Input!')
+                    Avalon.error('Invalid Input!')
         else:
             raise TypeError('invalid type for positional argument: \' default\'')
