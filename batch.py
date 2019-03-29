@@ -15,11 +15,13 @@ def singleBehavior(postID: int, savedFileName: str, seeLZ=True, imageBed=True):
         return False
     except SystemExit:
         return False
-    Avalon.time_info('开始任务:"%s"(作者:%s)[ID:%d]' %
-                     (postInfo['Title'], postInfo['Author'], postID), highlight=True)
+    Avalon.time_info(
+        '开始任务:"%s"(作者:%s)[ID:%d]' % (postInfo['Title'], postInfo['Author'],
+                                     postID),
+        highlight=True)
     Avalon.debug_info(postInfo)
     lastContext = []
-    for i in range(1, postInfo['TotalPage']+1):
+    for i in range(1, postInfo['TotalPage'] + 1):
         Avalon.time_info('开始第%d页,共%d页' % (i, postInfo['TotalPage']))
         try:
             pageHTMLContent = post.getContent(i)

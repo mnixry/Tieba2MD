@@ -21,7 +21,6 @@ from shutil import rmtree
 
 
 class image():  # 图片上传/下载模块
-
     '''
     实例化模块
     debug参数:开启debug模式,默认关闭
@@ -29,16 +28,18 @@ class image():  # 图片上传/下载模块
     tempDir参数:临时文件目录,默认当前目录下的temp文件夹(记得定时清理)
     '''
 
-    def __init__(self: None, debug: bool = False,
-                 workDir: str = os.getcwd(), tempDir: str = 'temp',
+    def __init__(self: None,
+                 debug: bool = False,
+                 workDir: str = os.getcwd(),
+                 tempDir: str = 'temp',
                  ignoreTimeOut: bool = False):
         with open('user-agents.txt') as f:
             userAgents = f.readlines()
         self.__fullTempPath = os.path.join(workDir, tempDir)
         if not os.path.exists(self.__fullTempPath):
             os.mkdir(self.__fullTempPath)
-        self.__getUserAgent = lambda: random.choice(
-            userAgents).replace('\n', '')
+        self.__getUserAgent = lambda: random.choice(userAgents).replace(
+            '\n', '')
         self.__getRandomUUID = lambda: uuid.uuid4().hex.upper() + '.jpg'
         self.__imageLinkDict = {}
         self.__ignoreTimeOut = bool(ignoreTimeOut)
@@ -63,7 +64,8 @@ class image():  # 图片上传/下载模块
                 r.add_header('User-Agent', self.__getUserAgent())
                 imageRes = request.urlopen(r, timeout=10).read()
             except error.URLError as e:
-                if not(self.__ignoreTimeOut and ('timed out' in str(e.reason))):
+                if not (self.__ignoreTimeOut and
+                        ('timed out' in str(e.reason))):
                     Avalon.warning('图片下载失败!原因:%s[%d/10]' % (e.reason, i))
             except timeout as e:
                 if not self.__ignoreTimeOut:
@@ -73,11 +75,11 @@ class image():  # 图片上传/下载模块
             else:
                 break
         else:
-            return(False)
+            return (False)
         if self.__debugMode:
-            Avalon.debug_info('图片下载成功!原链接:%s,文件大小:%dbytes' % (
-                imageLink, len(imageRes)))
-        return(imageRes)
+            Avalon.debug_info(
+                '图片下载成功!原链接:%s,文件大小:%dbytes' % (imageLink, len(imageRes)))
+        return (imageRes)
 
     '''
     单张图片上传
@@ -93,19 +95,22 @@ class image():  # 图片上传/下载模块
             # 默认选择新浪图床(推荐),还可以选择 SouGou:搜狗图床,Smms:https://sm.ms 图床
             form.add_field('apiSelect', 'Sina')
         r = request.Request(
-            'https://image.mnixry.cn/api/v1/upload', data=bytes(form))  # 用生成好的表单参数制造请求
+            'https://image.mnixry.cn/api/v1/upload',
+            data=bytes(form))  # 用生成好的表单参数制造请求
         r.add_header('User-Agent', self.__getUserAgent())  # 随机UA(必要性存疑)
         # 提交表单类型(主要是Boundary)
         r.add_header('Content-type', form.get_content_type())
         r.add_header('Content-length', len(bytes(form)))  # 提交表单大小(单位:bytes)
         if self.__debugMode:
-            Avalon.debug_info('文件名:%s,请求头:%s' % (
-                os.path.split(imageFilePath)[1], str(r.headers)))
+            Avalon.debug_info(
+                '文件名:%s,请求头:%s' % (os.path.split(imageFilePath)[1],
+                                   str(r.headers)))
         for i in range(1, 11):
             try:
                 uploadRes = request.urlopen(r, timeout=10).read().decode()
             except error.URLError as e:
-                if not(self.__ignoreTimeOut and ('timed out' in str(e.reason))):
+                if not (self.__ignoreTimeOut and
+                        ('timed out' in str(e.reason))):
                     Avalon.warning('图片上传失败!原因:%s[%d/10]' % (e.reason, i))
             except timeout as e:
                 if not self.__ignoreTimeOut:
@@ -115,26 +120,26 @@ class image():  # 图片上传/下载模块
             else:
                 uploadRes = json.loads(uploadRes)
                 if int(uploadRes['code']) != 200:
-                    Avalon.warning('图片上传失败!原因:%s[%d/10]' %
-                                   (uploadRes['msg'], i))
+                    Avalon.warning(
+                        '图片上传失败!原因:%s[%d/10]' % (uploadRes['msg'], i))
                     continue
                 else:
                     del form
                     break
         else:
-            return(False)
+            return (False)
         if self.__debugMode:
-            Avalon.debug_info('图片上传成功!图床链接:%s,本地地址:%s' % (
-                uploadRes['data']['url'], imageFilePath))
-        return(uploadRes['data']['url'])
+            Avalon.debug_info('图片上传成功!图床链接:%s,本地地址:%s' %
+                              (uploadRes['data']['url'], imageFilePath))
+        return (uploadRes['data']['url'])
 
     def __fullBehavior(self: None, imageOriginLink: str):
         imageResourse = self.downloadSingleImage(imageOriginLink)
         if imageResourse is False:
             self.__imageLinkDict[imageOriginLink] = imageOriginLink
-            return(self.__imageLinkDict[imageOriginLink])
-        fullImagePath = os.path.join(
-            self.__fullTempPath, self.__getRandomUUID())
+            return (self.__imageLinkDict[imageOriginLink])
+        fullImagePath = os.path.join(self.__fullTempPath,
+                                     self.__getRandomUUID())
         with open(fullImagePath, 'wb') as f:
             f.write(imageResourse)
         imageUploadLink = self.uploadSingleImage(fullImagePath)
@@ -142,7 +147,7 @@ class image():  # 图片上传/下载模块
             self.__imageLinkDict[imageOriginLink] = imageOriginLink
         else:
             self.__imageLinkDict[imageOriginLink] = imageUploadLink
-        return(self.__imageLinkDict[imageOriginLink])
+        return (self.__imageLinkDict[imageOriginLink])
 
     '''
     上传多张图片
@@ -152,7 +157,7 @@ class image():  # 图片上传/下载模块
     def uploadMultiImage(self: None, imageFileList: list):
         self.__imageLinkDict.clear()
         for i in imageFileList:
-            threading._start_new_thread(self.__fullBehavior, (i,))
+            threading._start_new_thread(self.__fullBehavior, (i, ))
             sleep(0.2)
         while True:
             sleep(0.5)
@@ -161,7 +166,7 @@ class image():  # 图片上传/下载模块
                     break
             else:
                 break
-        return(self.__imageLinkDict)
+        return (self.__imageLinkDict)
 
 
 if __name__ == "__main__":

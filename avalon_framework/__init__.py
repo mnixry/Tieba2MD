@@ -143,7 +143,8 @@ class Avalon:
     def info(msg, log=False, file=sys.stdout):
         """ print regular information
         """
-        Avalon._print('{}[INFO] {}{}'.format(Avalon.FG.G, str(msg), Avalon.FM.RST), file)
+        Avalon._print(
+            '{}[INFO] {}{}'.format(Avalon.FG.G, str(msg), Avalon.FM.RST), file)
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_INFO, msg)
 
@@ -152,7 +153,10 @@ class Avalon:
         """ print regular information with time stamp
         """
         import datetime
-        Avalon._print('{}{}{}[INFO] {}{}'.format(Avalon.FM.RST, str(datetime.datetime.now()), Avalon.FG.G, str(msg), Avalon.FM.RST), file)
+        Avalon._print(
+            '{}{}{}[INFO] {}{}'.format(
+                Avalon.FM.RST, str(datetime.datetime.now()), Avalon.FG.G,
+                str(msg), Avalon.FM.RST), file)
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_INFO, msg)
 
@@ -161,7 +165,9 @@ class Avalon:
         """ print information fo debugging
         """
         import datetime
-        Avalon._print('{}{}[INFO] {}{}'.format(Avalon.FG.DGR, str(datetime.datetime.now()), str(msg), Avalon.FM.RST), file)
+        Avalon._print(
+            '{}{}[INFO] {}{}'.format(Avalon.FG.DGR, str(
+                datetime.datetime.now()), str(msg), Avalon.FM.RST), file)
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_DEBUG, msg)
 
@@ -169,7 +175,9 @@ class Avalon:
     def warning(msg, log=False, file=sys.stderr):
         """ print a warning message
         """
-        Avalon._print('{}{}[WARNING] {}{}'.format(Avalon.FG.Y, Avalon.FM.BD, str(msg), Avalon.FM.RST), file)
+        Avalon._print(
+            '{}{}[WARNING] {}{}'.format(Avalon.FG.Y, Avalon.FM.BD, str(msg),
+                                        Avalon.FM.RST), file)
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_WARNING, msg)
 
@@ -177,7 +185,9 @@ class Avalon:
     def error(msg, log=True, file=sys.stderr):
         """ print an error message
         """
-        Avalon._print('{}{}[ERROR] {}{}'.format(Avalon.FG.R, Avalon.FM.BD, str(msg), Avalon.FM.RST), file)
+        Avalon._print(
+            '{}{}[ERROR] {}{}'.format(Avalon.FG.R, Avalon.FM.BD, str(msg),
+                                      Avalon.FM.RST), file)
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_WARNING, msg)
 
@@ -185,7 +195,9 @@ class Avalon:
     def debug(msg, log=True, file=sys.stderr):
         """ print a debug message
         """
-        Avalon._print('{}{}[DEBUG] {}{}'.format(Avalon.FG.R, Avalon.FM.RDM, str(msg), Avalon.FM.RST), file)
+        Avalon._print(
+            '{}{}[DEBUG] {}{}'.format(Avalon.FG.R, Avalon.FM.RDM, str(msg),
+                                      Avalon.FM.RST), file)
         if log and sys.platform != 'win32':
             syslog.syslog(syslog.LOG_DEBUG, msg)
 
@@ -198,12 +210,19 @@ class Avalon:
         if batch:
             return default
 
-        print('{}{}[USER] {}{}'.format(Avalon.FG.Y, Avalon.FM.BD, msg, Avalon.FM.RST), end='', file=file)
+        print(
+            '{}{}[USER] {}{}'.format(Avalon.FG.Y, Avalon.FM.BD, msg,
+                                     Avalon.FM.RST),
+            end='',
+            file=file)
         return input()
-    
+
     @staticmethod
-    def critical(msg,file=sys.stderr):
-        Avalon._print('{}{}{}[CRITICAL] {}{}'.format(Avalon.BG.R,Avalon.FM.BD,Avalon.FG.W,msg,Avalon.FM.RST),file=file)
+    def critical(msg, file=sys.stderr):
+        Avalon._print(
+            '{}{}{}[CRITICAL] {}{}'.format(Avalon.BG.R, Avalon.FM.BD,
+                                           Avalon.FG.W, msg, Avalon.FM.RST),
+            file=file)
 
     @staticmethod
     def ask(msg, default=False, batch=False):
@@ -237,4 +256,5 @@ class Avalon:
                 else:
                     Avalon.error('Invalid Input!')
         else:
-            raise TypeError('invalid type for positional argument: \' default\'')
+            raise TypeError(
+                'invalid type for positional argument: \' default\'')

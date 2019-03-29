@@ -12,24 +12,31 @@ def methodGet(url: str, headers: dict = {}, maxTryTimes: int = 10):
         try:
             dataGet = request.urlopen(url=requestMaker, timeout=10).read()
         except error.URLError as e:
-            Avalon.debug('GET "%s" Failed,reason:%s,Program will Try %d Times Later.' % (
-                url, e.reason, maxTryTimes-tryTimes))
+            Avalon.debug(
+                'GET "%s" Failed,reason:%s,Program will Try %d Times Later.' %
+                (url, e.reason, maxTryTimes - tryTimes))
         except timeout as e:
-            Avalon.debug('GET "%s" Timeout,reason:%s,Program will Try %d Times Later.' % (
-                url, e, maxTryTimes-tryTimes))
+            Avalon.debug(
+                'GET "%s" Timeout,reason:%s,Program will Try %d Times Later.' %
+                (url, e, maxTryTimes - tryTimes))
         except:
-            Avalon.debug('GET "%s" Timeout with no reason,Program will Try %d Times Later.' % (
-                url, maxTryTimes-tryTimes))
+            Avalon.debug(
+                'GET "%s" Timeout with no reason,Program will Try %d Times Later.'
+                % (url, maxTryTimes - tryTimes))
         else:
             break
     else:
         Avalon.error(
-            'GET "%s" Failed during all request,please check your network status.' % url)
+            'GET "%s" Failed during all request,please check your network status.'
+            % url)
         quit(1)
     return bytes(dataGet)
 
 
-def methodPost(url: str, datasEncoded: bytes, headers: dict = {}, maxTryTimes: int = 10):
+def methodPost(url: str,
+               datasEncoded: bytes,
+               headers: dict = {},
+               maxTryTimes: int = 10):
     encodedUrl = parse.urlparse(url=url).geturl()
     requsetMaker = request.Request(
         url=encodedUrl, headers=headers, data=datasEncoded)
@@ -37,19 +44,23 @@ def methodPost(url: str, datasEncoded: bytes, headers: dict = {}, maxTryTimes: i
         try:
             dataPost = request.urlopen(url=requsetMaker, timeout=10).read()
         except error.URLError as e:
-            Avalon.debug('POST "%s" Failed,reason:%s,Program will Try %d Times Later.' % (
-                url, e.reason, maxTryTimes-tryTimes))
+            Avalon.debug(
+                'POST "%s" Failed,reason:%s,Program will Try %d Times Later.' %
+                (url, e.reason, maxTryTimes - tryTimes))
         except timeout as e:
-            Avalon.debug('POST "%s" Timeout,reason:%s,Program will Try %d Times Later.' % (
-                url, e, maxTryTimes-tryTimes))
+            Avalon.debug(
+                'POST "%s" Timeout,reason:%s,Program will Try %d Times Later.'
+                % (url, e, maxTryTimes - tryTimes))
         except:
-            Avalon.debug('POST "%s" Timeout with no reason,Program will Try %d Times Later.' % (
-                url, maxTryTimes-tryTimes))
+            Avalon.debug(
+                'POST "%s" Timeout with no reason,Program will Try %d Times Later.'
+                % (url, maxTryTimes - tryTimes))
         else:
             break
     else:
         Avalon.error(
-            'POST "%s" Failed during all request,please check your network status.' % url)
+            'POST "%s" Failed during all request,please check your network status.'
+            % url)
         quit(1)
     return bytes(dataPost)
 

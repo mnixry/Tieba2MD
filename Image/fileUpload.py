@@ -21,22 +21,22 @@ from avalon_framework import Avalon
 class MultiPartForm:
     #处理提交表单时的数据
     #讲道理。。urllib提交表单是i倍的不方便。。。但是我也不想就为了上传个图片再用个第三方库
-
-
     '''
     实例化模块
     boundaryPrefix参数:在Boundary分割线前增添的内容(必要性存疑)
     '''
+
     def __init__(self, boundaryPrefix: str = '----WebKitFormBoundary'):
         self.form_fields = []
         self.files = []
-        self.boundary = (boundaryPrefix+''.join(random.sample(
-            string.ascii_letters + string.digits, 16))).encode()
+        self.boundary = (boundaryPrefix + ''.join(
+            random.sample(string.ascii_letters + string.digits, 16))).encode()
         return
 
     '''
     获得表单类型
     '''
+
     def get_content_type(self):
         return 'multipart/form-data; boundary={}'.format(
             self.boundary.decode())
@@ -46,6 +46,7 @@ class MultiPartForm:
     name:项目名
     value:项目值
     '''
+
     def add_field(self, name, value):
         #增加表单值
         self.form_fields.append((name, value))
@@ -57,14 +58,13 @@ class MultiPartForm:
     fileHandle:文件对象
     mimetype:数据类型,默认自动获取
     '''
+
     def add_file(self, fieldname, filename, fileHandle, mimetype=None):
         #添加文件
         body = fileHandle.read()
         if mimetype is None:
-            mimetype = (
-                mimetypes.guess_type(filename)[0] or
-                'application/octet-stream'
-            )
+            mimetype = (mimetypes.guess_type(filename)[0]
+                        or 'application/octet-stream')
         self.files.append((fieldname, filename, mimetype, body))
         return
 
@@ -76,8 +76,8 @@ class MultiPartForm:
     @staticmethod
     def _attached_file(name, filename):
         return ('Content-Disposition: form-data; '
-                'name="{}"; filename="{}"\r\n').format(
-                    name, filename).encode()
+                'name="{}"; filename="{}"\r\n').format(name,
+                                                       filename).encode()
 
     @staticmethod
     def _content_type(ct):
@@ -105,7 +105,7 @@ class MultiPartForm:
             buffer.write(body)
             buffer.write(b'\r\n')
 
-        buffer.write(b'--'+self.boundary + b'--\r\n')
+        buffer.write(b'--' + self.boundary + b'--\r\n')
         return buffer.getvalue()
 
 

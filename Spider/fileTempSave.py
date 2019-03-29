@@ -5,7 +5,10 @@ import re
 
 
 class temp():
-    def __init__(self, postID: int, workDir: str = os.getcwd(), tempDir: str = 'temp'):
+    def __init__(self,
+                 postID: int,
+                 workDir: str = os.getcwd(),
+                 tempDir: str = 'temp'):
         self.__fullTempDir = os.path.join(workDir, tempDir)
         self.__postID = int(postID)
         self.__fileNameMatch = re.compile(r'^TempSave_(\d+)_(\d+)\.(.+)$')
@@ -15,14 +18,18 @@ class temp():
     def savePostRaw(self, postRaw: str, pageNumber: int, ext: str = 'html'):
         fullTempName = 'TempSave_%d_%d.%s' % (self.__postID, pageNumber, ext)
         fullTempFilePath = os.path.join(self.__fullTempDir, fullTempName)
-        with open(fullTempFilePath, 'wt', encoding='utf-8', errors='ignore') as f:
+        with open(
+                fullTempFilePath, 'wt', encoding='utf-8',
+                errors='ignore') as f:
             f.write(postRaw)
         return fullTempFilePath
 
     def saveJson(self, postInfo, pageNumber: int, ext: str = 'json'):
         fullTempName = 'TempSave_%d_%d.%s' % (self.__postID, pageNumber, ext)
         fullTempFilePath = os.path.join(self.__fullTempDir, fullTempName)
-        with open(fullTempFilePath, 'wt', encoding='utf-8', errors='ignore') as f:
+        with open(
+                fullTempFilePath, 'wt', encoding='utf-8',
+                errors='ignore') as f:
             postJson = json.dumps(postInfo)
             f.write(postJson)
         return fullTempFilePath

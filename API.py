@@ -10,30 +10,31 @@ from avalon_framework import Avalon
 class getThread():
     def __init__(self, postID: int):
         self.__db = database(pid=postID)
-        self.__pageNumber = 1
         self.__tid = postID
         self.__executeCommand = self.__db.executeCommand()
+        self.__dbTotalChange = 0
 
         def autoWrite():
-            while True:
-                next(self.__executeCommand)
-        threading._start_new_thread(autoWrite, tuple())
+            for i in self.__executeCommand:
+                self.__dbTotalChange = int(i)
+
+        threading.Thread(target=autoWrite).start()
 
     def __getMainThread(self, postID: int, pageNumber: int):
         context = getContext(threadID=postID, pageNumber=pageNumber)
         return context
 
     def __getSubFloor(self, postID: int, replyID: int, pageNumber: int):
-        context = getReply(threadID=postID, replyID=replyID,
-                           pageNumber=pageNumber)
+        context = getReply(
+            threadID=postID, replyID=replyID, pageNumber=pageNumber)
         return context
 
     def __getPostBehavior(self, pageNumber: int, threadName: str):
         Avalon.debug_info('[%s]Thread "%s" Start Read Page %s' %
                           (self.__tid, threadName, pageNumber))
         if self.__db.checkExistPage(pageNumber):
-            Avalon.debug_info(
-                '[%s]Page %s Had Already Exist in Database.' % (self.__tid, pageNumber))
+            Avalon.debug_info('[%s]Page %s Had Already Exist in Database.' %
+                              (self.__tid, pageNumber))
             return
         result = self.__getMainThread(self.__tid, pageNumber)
         self.__db.writePage(pageNumber, result)
@@ -53,8 +54,8 @@ class getThread():
     def __getUserName(self, userID: str):
         dbResult = self.__db.checkExistUsers(userID)
         if not dbResult:
-            Avalon.debug(
-                'User ID: %s Can\'t Get Username,Will Use ID Instead.' % userID)
+            Avalon.debug('User ID: %s Can\'t Get Username,Will Use ID Instead.'
+                         % userID)
             userName = str(userID)
         else:
             userName = str(dbResult[1])
@@ -80,7 +81,7 @@ class getThread():
         for i in range(threadNumber):
             threadName = 'PostThread #%s' % i
             newThread = threading.Thread(
-                target=mainFloorThread, args=(threadName,))
+                target=mainFloorThread, args=(threadName, ))
             newThread.setName(threadName)
             newThread.start()
             threadList.append(newThread)
@@ -92,7 +93,7 @@ class getThread():
             quit(1)
         totalPages = int(json.loads(dbRead)['page']['total_page'])
         for i in range(totalPages):
-            workQueue.put(i+1)
+            workQueue.put(i + 1)
         while not workQueue.empty():
             time.sleep(1)
         exitFlag = True
@@ -105,7 +106,7 @@ class getThread():
         totalPage = int(dbGot['page']['total_page'])
 
         for pageNum in range(totalPage):
-            gotData = self.__db.checkExistPage(pageNum+1)
+            gotData = self.__db.checkExistPage(pageNum + 1)
             if not gotData:
                 Avalon.error('Can\'t Get Page %s,Skip' % pageNum)
                 continue
@@ -119,9 +120,9 @@ class getThread():
                 userID = int(i['author_id'])
                 userName = self.__getUserName(userID)
                 context = str(json.dumps(i))
-                self.__db.writeFloor(floorNumber, replyID,
-                                     publishTime, userName, context)
+                self.__db.writeFloor(floorNumber, replyID, publishTime,
+                                     userName, context)
 
-            totalChange = self.__db.getTotalChange()
-            Avalon.debug_info('[%s]Floor Info at Page %s Finished.Database Changed %s Record' % (
-                self.__tid, pageNum+1, totalChange))
+            Avalon.debug_info(
+                '[%s]Floor Info at Page %s Finished.Database Changed %s Record'
+                % (self.__tid, pageNum + 1, self.__dbTotalChange))

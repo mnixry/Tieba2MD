@@ -6,15 +6,16 @@ from .networkRequest import methodGet
 
 
 def getAndroidStamp():
-    def getDigit(d): return ''.join(str(random.choice(range(10)))
-                                    for _ in range(int(d)))
+    def getDigit(d):
+        return ''.join(str(random.choice(range(10))) for _ in range(int(d)))
+
     fullStamp = 'wappc_%s_%s' % (getDigit(13), getDigit(3))
     return fullStamp
 
 
 def getTiebaSign(postData: bytes):
     decodedData = parse.unquote(string=postData.decode())
-    decodedData = decodedData.replace('&', '')+'tiebaclient!!!'
+    decodedData = decodedData.replace('&', '') + 'tiebaclient!!!'
     return getMD5(decodedData.encode())
 
 

@@ -41,7 +41,10 @@ class spider():
         else:
             raise TypeError
 
-    def getPost(self: None, pageNumber: int, ajax: bool = True, useTemp: bool = True):  # 获得html源文件函数
+    def getPost(self: None,
+                pageNumber: int,
+                ajax: bool = True,
+                useTemp: bool = True):  # 获得html源文件函数
         self.__workPageNumber = pageNumber
         link = self.__postLink + str(pageNumber)
         existTemp = self.__tempSave.getSameTemp()
@@ -57,25 +60,25 @@ class spider():
                 postRequest = request.Request(link)
                 try:
                     # 设置程序请求头，伪装爬虫（必要性存疑）
-                    postRequest.add_header(
-                        'User-Agent', (random.choice(self.__userAgent)).replace('\n', ''))
-                    postRequest.add_header(
-                        'Referer', 'https://tieba.baidu.com')
+                    postRequest.add_header('User-Agent', (random.choice(
+                        self.__userAgent)).replace('\n', ''))
+                    postRequest.add_header('Referer',
+                                           'https://tieba.baidu.com')
                 except:
                     continue
                 else:
                     postRead: bytes = request.urlopen(
                         postRequest, timeout=5).read()
                     if self.debug:
-                        Avalon.debug_info('链接:"%s"请求头:%s.' %
-                                          (link, postRequest.headers))
+                        Avalon.debug_info(
+                            '链接:"%s"请求头:%s.' % (link, postRequest.headers))
             # 错误处理
             except error.URLError as e:
-                Avalon.warning("获取帖子正文失败!原因:%s(%s/10)" %
-                               (str(e.reason), str(tryTimes)))
+                Avalon.warning(
+                    "获取帖子正文失败!原因:%s(%s/10)" % (str(e.reason), str(tryTimes)))
             except timeout as e:
-                Avalon.warning("获取帖子正文失败!原因:%s(%s/10)" %
-                               (str(e), str(tryTimes)))
+                Avalon.warning(
+                    "获取帖子正文失败!原因:%s(%s/10)" % (str(e), str(tryTimes)))
             except KeyboardInterrupt:
                 Avalon.critical("用户强制退出")
                 quit(1)
@@ -92,9 +95,9 @@ class spider():
                 Avalon.debug('Link:%s' % link)
             quit(1)
         if useTemp is True:
-            self.__tempSave.savePostRaw(postRead.decode(
-                errors='ignore'), pageNumber=pageNumber)
-        return(postRead.decode(errors='ignore'))
+            self.__tempSave.savePostRaw(
+                postRead.decode(errors='ignore'), pageNumber=pageNumber)
+        return (postRead.decode(errors='ignore'))
 
     def getPostInfo(self: None):
         postRaw = self.getPost(pageNumber=1, ajax=False, useTemp=False)
@@ -107,11 +110,14 @@ class spider():
             '//div[@class="p_postlist"]/div[@class][1]//div/@author')
         postPageNum = postGet.xpath(
             '//div/div[@id]//div[@id]//li/span[@class="red"][last()]/text()')
-        if not(postTitle and postAuthor and postPageNum):
+        if not (postTitle and postAuthor and postPageNum):
             Avalon.critical('程序无法正确获得帖子信息')
             quit(1)
-        finalInfo = {'Author': str(postAuthor[0]), 'Title': str(
-            postTitle[0]), 'TotalPage': int(postPageNum[0])}
+        finalInfo = {
+            'Author': str(postAuthor[0]),
+            'Title': str(postTitle[0]),
+            'TotalPage': int(postPageNum[0])
+        }
         self.postInfo = finalInfo
         if self.debug:
             Avalon.debug_info(self.postInfo)
@@ -141,10 +147,10 @@ class spider():
                     Avalon.debug_info(
                         '因为不存在"data-field"属性,跳过对象"%s"' % str(perFloor))
                 continue
-            floorNum = json.loads(perFloor.xpath(
-                './@data-field')[0])['content']['post_no']
-            author = json.loads(perFloor.xpath(
-                './@data-field')[0])['author']['user_name']
+            floorNum = json.loads(
+                perFloor.xpath('./@data-field')[0])['content']['post_no']
+            author = json.loads(
+                perFloor.xpath('./@data-field')[0])['author']['user_name']
             text = perFloor.xpath('.//cc//div[@id]')
             if not text:
                 #Avalon.debug_info(str(floorNum)+str(author))
@@ -163,7 +169,7 @@ class spider():
         postFullInfo['Data'] = finalList
         if useTemp is True:
             self.__tempSave.saveJson(postFullInfo, self.__workPageNumber)
-        return(postFullInfo)
+        return (postFullInfo)
 
 
 if __name__ == "__main__":
