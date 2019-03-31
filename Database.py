@@ -3,6 +3,7 @@ import json
 import threading
 from time import sleep
 from queue import Queue
+from zlib import crc32
 
 
 class database():
@@ -21,7 +22,7 @@ class database():
             CONTEXT BLOB NOT NULL
         );
         CREATE TABLE IF NOT EXISTS SUBPAGE (
-            REPLYINFO TEXT PRIMARY KEY NOT NULL,
+            REPLYINFO INTEGER PRIMARY KEY NOT NULL,
             RES BLOB NOT NULL
         );
         CREATE TABLE IF NOT EXISTS SUBFLOOR (
@@ -57,6 +58,12 @@ class database():
         self.queue = Queue()
         self.getTotalChange = lambda: self._db.total_changes
 
+    @staticmethod
+    def __replyID2Hash(replyID: int, replyPageNumber: int):
+        fullText = hex(replyID) + '-' + str(replyPageNumber)
+        fullTextHash = crc32(fullText.encode('ascii'))
+        return fullTextHash
+
     def checkExistPage(self, pageNumber: int):
         result = self._db.execute(
             'SELECT PAGE,RES FROM POSTPAGE WHERE PAGE = ?', (pageNumber, ))
@@ -89,22 +96,6 @@ class database():
         self.queue.put((
             'INSERT INTO MAINFLOOR (FLOOR,REPLYID,PUBTIME,AUTHOR,CONTEXT) VALUES (?,?,?,?,?)',
             (floorNumber, replyID, publishTime, author, context)))
-
-    def checkExistSubPage(self, replyInfo: str):
-        result = self._db.execute(
-            'SELECT REPLYINFO,RES FROM SUBPAGE WHERE REPLYINFO = ?',
-            (replyInfo, ))
-        result = list(result)
-        if not result:
-            return False
-        else:
-            return result[0]
-
-    def writeSubPage(self, replyInfo: str, context: str):
-        if self.checkExistSubPage(replyInfo):
-            return False
-        self.queue.put(('INSERT INTO SUBPAGE (REPLYINFO,RES) VALUES (?,?)',
-                        (replyInfo, context)))
 
     def checkExistSubFloor(self, publishTime: int):
         result = self._db.execute(
@@ -156,6 +147,24 @@ class database():
 
         self.queue.put(('INSERT INTO IMAGES (LINK,RES) VALUES (?,?)',
                         (imageLink, imageRes)))
+
+    def checkExistSubPage(self, replyID: int, replyPageNumber: int):
+        argsHash = self.__replyID2Hash(replyID, replyPageNumber)
+        result = self._db.execute(
+            'SELECT REPLYINFO,RES FROM SUBPAGE WHERE REPLYINFO = ?',
+            (argsHash, ))
+        result = list(result)
+        if not result:
+            return False
+        else:
+            return result[0]
+
+    def writeSubPage(self, replyID: int, replyPageNumber: int, context: str):
+        if self.checkExistSubPage(replyID, replyPageNumber):
+            return False
+        argsHash = self.__replyID2Hash(replyID, replyPageNumber)
+        self.queue.put(('INSERT INTO SUBPAGE (REPLYINFO,RES) VALUES (?,?)',
+                        (argsHash, context)))
 
     def executeCommand(self):
         while True:

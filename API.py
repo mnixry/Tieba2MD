@@ -2,9 +2,10 @@ import threading
 import json
 import queue
 import time
-from Client import *
-from Database import database
+from Client import getReply,formatJson,getContext,getUser
 from avalon_framework import Avalon
+from Database import database
+from math import ceil
 
 
 class getThread():
@@ -20,14 +21,23 @@ class getThread():
 
         threading.Thread(target=autoWrite).start()
 
-    def __getMainThread(self, postID: int, pageNumber: int):
+    @staticmethod
+    def __getMainThread(postID: int, pageNumber: int):
         context = getContext(threadID=postID, pageNumber=pageNumber)
         return context
 
-    def __getSubFloor(self, postID: int, replyID: int, pageNumber: int):
+    @staticmethod
+    def __getSubFloor(postID: int, replyID: int, pageNumber: int):
         context = getReply(
             threadID=postID, replyID=replyID, pageNumber=pageNumber)
         return context
+    
+    @staticmethod
+    def __calcPageNum(PageSize:int,TotalNum:int):
+        if PageSize == 0:
+            return 0
+        PageNumber = ceil(TotalNum / PageSize)
+        return int(PageNumber)
 
     def __getPostBehavior(self, pageNumber: int, threadName: str):
         Avalon.debug_info('[%s]Thread "%s" Start Read Page %s' %
@@ -38,7 +48,20 @@ class getThread():
             return
         result = self.__getMainThread(self.__tid, pageNumber)
         self.__db.writePage(pageNumber, result)
-        return self.__db.getTotalChange()
+        return self.__dbTotalChange
+
+    def __getSubPageBehavior(self, replyID: int, replyPageNumber: int,
+                             threadName: str):
+        Avalon.debug_info('[%s]Thread "%s" Start Read Reply %s - Page %s' %
+                          (self.__tid, threadName, replyID, replyPageNumber))
+        if self.__db.checkExistSubPage(replyID, replyPageNumber):
+            Avalon.debug_info(
+                '[%s]Reply %s - Page %s Had Already Exist in Database.' %
+                (self.__tid, replyID, replyPageNumber))
+            return
+        result = self.__getSubFloor(self.__tid, replyID, replyPageNumber)
+        self.__db.writeSubPage(replyID, replyPageNumber, result)
+        return self.__dbTotalChange
 
     def __writePageUserNameToDatabase(self, gotData: dict):
         for i in gotData['user_list']:
@@ -60,6 +83,19 @@ class getThread():
         else:
             userName = str(dbResult[1])
         return userName
+
+    def __getReplyIDList(self, pageNumber: int):
+        dbResult = self.__db.checkExistPage(pageNumber)
+        if not dbResult:
+            Avalon.error('Failed To Get Page %s In Database' % pageNumber)
+            return False
+        dbResultDecode = json.loads(dbResult)
+        replyIDList = []
+        for perFloor in dbResultDecode['post_list']:
+            replyID = perFloor.get('id')
+            if replyID:
+                replyIDList.append(int(replyID))
+        return replyIDList
 
     def multiThreadGetMain(self, threadNumber: int = 8):
         workQueue = queue.Queue(threadNumber)
@@ -126,3 +162,6 @@ class getThread():
             Avalon.debug_info(
                 '[%s]Floor Info at Page %s Finished.Database Changed %s Record'
                 % (self.__tid, pageNum + 1, self.__dbTotalChange))
+
+    def multiThreadGetSubPage(self):
+        pass
