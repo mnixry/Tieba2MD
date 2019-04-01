@@ -2,7 +2,7 @@ import threading
 import json
 import queue
 import time
-from Client import getReply,formatJson,getContext,getUser
+from Client import getReply, formatJson, getContext, getUser
 from avalon_framework import Avalon
 from Database import database
 from math import ceil
@@ -31,9 +31,9 @@ class getThread():
         context = getReply(
             threadID=postID, replyID=replyID, pageNumber=pageNumber)
         return context
-    
+
     @staticmethod
-    def __calcPageNum(PageSize:int,TotalNum:int):
+    def __calcPageNum(PageSize: int, TotalNum: int):
         if PageSize == 0:
             return 0
         PageNumber = ceil(TotalNum / PageSize)
@@ -163,5 +163,27 @@ class getThread():
                 '[%s]Floor Info at Page %s Finished.Database Changed %s Record'
                 % (self.__tid, pageNum + 1, self.__dbTotalChange))
 
-    def multiThreadGetSubPage(self):
-        pass
+    def multiThreadGetSubPage(self, threadNumber: int = 16):
+        workQueue = queue.Queue(threadNumber)
+        threadLock = threading.Lock()
+        exitFlag = False
+        threadList = []
+
+        def subPageThread(name: str = 'Untitled'):
+            while not exitFlag:
+                threadLock.acquire()
+                if not workQueue.empty():
+                    getArgs = workQueue.get()
+                    threadLock.acquire()
+                    self.__getSubPageBehavior(*getArgs, name)
+                else:
+                    threadLock.release()
+                    time.sleep(1)
+
+        for i in range(threadNumber):
+            threadName = 'SubFloorThread#%s' % i
+            newThread = threading.Thread(
+                target=subPageThread, args=(threadName, ))
+            newThread.setName(threadName)
+            newThread.start()
+            threadList.append(newThread)
