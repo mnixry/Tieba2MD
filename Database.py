@@ -10,13 +10,15 @@ class database():
     def __init__(self, pid: int):
         fileName = str(pid) + '.db'
         self._db = sqlite3.connect(database=fileName, check_same_thread=False)
-        self._db.executescript('''CREATE TABLE IF NOT EXISTS POSTPAGE (
+        self._db.executescript('''
+        CREATE TABLE IF NOT EXISTS POSTPAGE (
             PAGE INTEGER PRIMARY KEY NOT NULL,
             RES BLOB NOT NULL
         );
         CREATE TABLE IF NOT EXISTS MAINFLOOR (
             FLOOR INTEGER PRIMARY KEY NOT NULL,
             REPLYID INTEGER NOT NULL,
+            REPLYNUM INTEGER NOT NULL,
             PUBTIME INTEGER NOT NULL,
             AUTHOR TEXT NOT NULL,
             CONTEXT BLOB NOT NULL
@@ -81,21 +83,30 @@ class database():
 
     def checkExistFloor(self, floorNumber: int):
         result = self._db.execute(
-            'SELECT FLOOR,REPLYID,PUBTIME,AUTHOR,CONTEXT FROM MAINFLOOR WHERE FLOOR = ?',
+            'SELECT FLOOR,REPLYID,REPLYNUM,PUBTIME,AUTHOR,CONTEXT FROM MAINFLOOR WHERE FLOOR = ?',
             (floorNumber, ))
         result = list(result)
-        if not list(result):
+        if not result:
             return False
         else:
-            return list(result)[0]
+            return result[0]
 
-    def writeFloor(self, floorNumber: int, replyID: int, publishTime: int,
-                   author: str, context: str):
+    def getlastFloorNum(self):
+        result = self._db.execute(
+            'SELECT FLOOR FROM MAINFLOOR ORDER BY FLOOR DESC LIMIT 1')
+        result = list(result)
+        if not result:
+            return 0
+        else:
+            return int(result[0][0])
+
+    def writeFloor(self, floorNumber: int, replyID: int, replyNum: int,
+                   publishTime: int, author: str, context: str):
         if self.checkExistFloor(floorNumber):
             return False
         self.queue.put((
-            'INSERT INTO MAINFLOOR (FLOOR,REPLYID,PUBTIME,AUTHOR,CONTEXT) VALUES (?,?,?,?,?)',
-            (floorNumber, replyID, publishTime, author, context)))
+            'INSERT INTO MAINFLOOR (FLOOR,REPLYID,REPLYNUM,PUBTIME,AUTHOR,CONTEXT) VALUES (?,?,?,?,?,?)',
+            (floorNumber, replyID, replyNum, publishTime, author, context)))
 
     def checkExistSubFloor(self, publishTime: int):
         result = self._db.execute(

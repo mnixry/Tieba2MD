@@ -19,7 +19,8 @@ class getThread():
             for i in self.__executeCommand:
                 self.__dbTotalChange = int(i)
 
-        threading.Thread(target=autoWrite).start()
+        self.autoWriteThread = threading.Thread(target=autoWrite)
+        self.autoWriteThread.start()
 
     @staticmethod
     def __getMainThread(postID: int, pageNumber: int):
@@ -151,19 +152,22 @@ class getThread():
             self.__writePageUserNameToDatabase(gotData)
             for i in gotData['post_list']:
                 replyID = int(i['id'])
+                replyNum = int(i.get('sub_post_number', 0))
                 floorNumber = int(i['floor'])
                 publishTime = int(i['time'])
                 userID = int(i['author_id'])
                 userName = self.__getUserName(userID)
                 context = str(json.dumps(i))
-                self.__db.writeFloor(floorNumber, replyID, publishTime,
-                                     userName, context)
+                self.__db.writeFloor(floorNumber, replyID, replyNum,
+                                     publishTime, userName, context)
 
             Avalon.debug_info(
                 '[%s]Floor Info at Page %s Finished.Database Changed %s Record'
                 % (self.__tid, pageNum + 1, self.__dbTotalChange))
 
-    def multiThreadGetSubPage(self, threadNumber: int = 16):
+    def multiThreadGetSubPage(self,
+                              threadNumber: int = 16,
+                              expectedPageSize: int = 30):
         workQueue = queue.Queue(threadNumber)
         threadLock = threading.Lock()
         exitFlag = False
@@ -187,3 +191,21 @@ class getThread():
             newThread.setName(threadName)
             newThread.start()
             threadList.append(newThread)
+
+        totalFloorNumber = self.__db.getlastFloorNum()
+        print(totalFloorNumber)
+        for floorNum in range(totalFloorNumber):
+            dbResult = self.__db.checkExistFloor(floorNum + 1)
+            if not dbResult:
+                continue
+            replyID = dbResult[1]
+            replyNumber = dbResult[2]
+            replyPageNumber = self.__calcPageNum(expectedPageSize, replyNumber)
+            for i in range(replyPageNumber):
+                workQueue.put((replyID, i + 1))
+        while not workQueue.empty():
+            time.sleep(1)
+        exitFlag = 1
+        for i in threadList:
+            i.join()
+        Avalon.info('[%s] Get Sub Floor Page Success' % self.__tid)
