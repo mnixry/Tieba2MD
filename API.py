@@ -21,6 +21,7 @@ class getThread():
 
         self.autoWriteThread = threading.Thread(target=autoWrite)
         self.autoWriteThread.start()
+        Avalon.thread_lock = threading.Lock()
 
     @staticmethod
     def __getMainThread(postID: int, pageNumber: int):
@@ -178,7 +179,7 @@ class getThread():
                 threadLock.acquire()
                 if not workQueue.empty():
                     getArgs = workQueue.get()
-                    threadLock.acquire()
+                    threadLock.release()
                     self.__getSubPageBehavior(*getArgs, name)
                 else:
                     threadLock.release()
@@ -193,7 +194,8 @@ class getThread():
             threadList.append(newThread)
 
         totalFloorNumber = self.__db.getlastFloorNum()
-        print(totalFloorNumber)
+        Avalon.debug_info('[%s]Start Read Replies,Total %s Floor' %
+                          (self.__tid, totalFloorNumber))
         for floorNum in range(totalFloorNumber):
             dbResult = self.__db.checkExistFloor(floorNum + 1)
             if not dbResult:
@@ -209,3 +211,6 @@ class getThread():
         for i in threadList:
             i.join()
         Avalon.info('[%s] Get Sub Floor Page Success' % self.__tid)
+    
+    def convReplyToPerRecord(self):
+        pass

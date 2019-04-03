@@ -1,5 +1,5 @@
-from .valueGen import *
-from .networkRequest import *
+from .valueGen import getAndroidStamp, getTiebaSign, getMD5
+from .networkRequest import methodGet, methodPost, methodEncode
 import json
 
 

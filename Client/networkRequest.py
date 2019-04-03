@@ -3,6 +3,16 @@ from urllib import error
 from urllib import parse
 from socket import timeout
 from avalon_framework import Avalon
+from threading import current_thread
+
+
+def __quitCheck(exitCode: int = 0):
+    currentThread = current_thread()
+    if currentThread.getName() == 'MainThread':
+        from sys import exit
+        exit(code=exitCode)
+    else:
+        return exitCode
 
 
 def methodGet(url: str, headers: dict = {}, maxTryTimes: int = 10):
@@ -21,7 +31,7 @@ def methodGet(url: str, headers: dict = {}, maxTryTimes: int = 10):
                 (url, e, maxTryTimes - tryTimes))
         except:
             Avalon.debug(
-                'GET "%s" Timeout with no reason,Program will Try %d Times Later.'
+                'GET "%s" Timeout with unknown reason,Program will Try %d Times Later.'
                 % (url, maxTryTimes - tryTimes))
         else:
             break
@@ -29,7 +39,7 @@ def methodGet(url: str, headers: dict = {}, maxTryTimes: int = 10):
         Avalon.error(
             'GET "%s" Failed during all request,please check your network status.'
             % url)
-        quit(1)
+        __quitCheck(1)
     return bytes(dataGet)
 
 
@@ -53,7 +63,7 @@ def methodPost(url: str,
                 % (url, e, maxTryTimes - tryTimes))
         except:
             Avalon.debug(
-                'POST "%s" Timeout with no reason,Program will Try %d Times Later.'
+                'POST "%s" Timeout with unknown reason,Program will Try %d Times Later.'
                 % (url, maxTryTimes - tryTimes))
         else:
             break
@@ -61,7 +71,7 @@ def methodPost(url: str,
         Avalon.error(
             'POST "%s" Failed during all request,please check your network status.'
             % url)
-        quit(1)
+        __quitCheck(1)
     return bytes(dataPost)
 
 
