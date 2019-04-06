@@ -41,7 +41,8 @@ class getThread():
         PageNumber = ceil(TotalNum / PageSize)
         return int(PageNumber)
 
-    def __getPostBehavior(self, pageNumber: int, threadName: str):
+    def __getPostBehavior(self, pageNumber: int):
+        threadName = threading.current_thread().getName()
         Avalon.debug_info('[%s]Thread "%s" Start Read Page %s' %
                           (self.__tid, threadName, pageNumber))
         if self.__db.checkExistPage(pageNumber):
@@ -52,8 +53,8 @@ class getThread():
         self.__db.writePage(pageNumber, result)
         return self.__dbTotalChange
 
-    def __getSubPageBehavior(self, replyID: int, replyPageNumber: int,
-                             threadName: str):
+    def __getSubPageBehavior(self, replyID: int, replyPageNumber: int):
+        threadName = threading.current_thread().getName()
         Avalon.debug_info('[%s]Thread "%s" Start Read Reply %s - Page %s' %
                           (self.__tid, threadName, replyID, replyPageNumber))
         if self.__db.checkExistSubPage(replyID, replyPageNumber):
@@ -105,26 +106,25 @@ class getThread():
         exitFlag = False
         threadList = []
 
-        def mainFloorThread(name: str = 'Untitled'):
+        def mainFloorThread():
             while not exitFlag:
                 threadLock.acquire()
                 if not workQueue.empty():
                     pageNumber = workQueue.get()
                     threadLock.release()
-                    self.__getPostBehavior(pageNumber, name)
+                    self.__getPostBehavior(pageNumber)
                 else:
                     threadLock.release()
                     time.sleep(1)
 
         for i in range(threadNumber):
             threadName = 'PostThread #%s' % i
-            newThread = threading.Thread(
-                target=mainFloorThread, args=(threadName, ))
+            newThread = threading.Thread(target=mainFloorThread)
             newThread.setName(threadName)
             newThread.start()
             threadList.append(newThread)
 
-        self.__getPostBehavior(1, threadName='PreSetThread')
+        self.__getPostBehavior(1)
         dbRead = self.__db.checkExistPage(1)[1]
         if not dbRead:
             Avalon.critical('Can\'t Get Page 1,Program Exit!')
@@ -174,21 +174,20 @@ class getThread():
         exitFlag = False
         threadList = []
 
-        def subPageThread(name: str = 'Untitled'):
+        def subPageThread():
             while not exitFlag:
                 threadLock.acquire()
                 if not workQueue.empty():
                     getArgs = workQueue.get()
                     threadLock.release()
-                    self.__getSubPageBehavior(*getArgs, name)
+                    self.__getSubPageBehavior(*getArgs)
                 else:
                     threadLock.release()
                     time.sleep(1)
 
         for i in range(threadNumber):
             threadName = 'SubFloorThread#%s' % i
-            newThread = threading.Thread(
-                target=subPageThread, args=(threadName, ))
+            newThread = threading.Thread(target=subPageThread)
             newThread.setName(threadName)
             newThread.start()
             threadList.append(newThread)
@@ -211,6 +210,6 @@ class getThread():
         for i in threadList:
             i.join()
         Avalon.info('[%s] Get Sub Floor Page Success' % self.__tid)
-    
+
     def convReplyToPerRecord(self):
         pass
