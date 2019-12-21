@@ -1,7 +1,7 @@
 # Tieba2MD
 **百度贴吧→本地`Markdown`**
 
-**请到<a href="https://github.com/mnixry/Tieba2MD/releases">这里</a>下载最新稳定版**
+**此项目目前不可用，请等待作者进行重构**
 
 ## 我是谁？
 一个简单的爬虫，能够帮准将百度贴吧的帖子转换为Markdown格式
