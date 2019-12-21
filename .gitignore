@@ -1,17 +1,10 @@
+#Custom ignore
+*.md
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
-.vscode/
-*temp*/
-test*
-*.md
-*.db*
-*.json
 *.py[cod]
 *$py.class
-*.txt
-!README.*
-!user-agents.txt
-【*/
 
 # C extensions
 *.so
