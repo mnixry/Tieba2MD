@@ -1,4 +1,7 @@
 #Custom ignore
+.vscode/
+test.*
+*.json
 *.md
 
 # Byte-compiled / optimized / DLL files
