@@ -31,19 +31,19 @@ def catchRequestsException(retries: int = 3):
 @Timeit
 def GET(url: str,
         params: Dict['str', Any] = None,
-        headers: Dict['str', 'str'] = {}) -> bytes:
+        headers: Dict['str', 'str'] = {}) -> dict:
     _NETWORK_LOGGER.debug(
         f'Start GET "{url}",with params={params} and headers={headers}')
     r = requests.get(url=url, params=params, headers=headers)
     r.raise_for_status()
-    return r.content
+    return r.json()
 
 
 @catchRequestsException()
 @Timeit
-def POST(url: str, data: bytes, headers: Dict['str', 'str'] = {}) -> bytes:
+def POST(url: str, data: bytes, headers: Dict['str', 'str'] = {}) -> dict:
     _NETWORK_LOGGER.debug(
         f'Start POST "{url}",with headers={headers} and data={data[:50]}...')
     r = requests.post(url=url, data=data, headers=headers)
     r.raise_for_status()
-    return r.content
+    return r.json()

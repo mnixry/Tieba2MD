@@ -18,18 +18,19 @@ class TiebaAPI:
             '_client_id': utils.randomStamp(),
             '_client_type': 2,
             '_client_version': '9.9.8.32',
-            'kz': tid
+            'kz': tid,
+            'pn': pageNumber
         }
         dataPost.update({'last': 1, 'r': 1} if reverse else {})
         signature = utils.generateSignature(urlencode(dataPost))
         dataPost['sign'] = signature
-        responseData: bytes = \
-            network.POST(requestURL,urlencode(dataPost).encode())
+        responseData: dict = network.POST(requestURL,
+                                          urlencode(dataPost).encode())
         if not responseData:
             _API_LOGGER.error(
                 f'Get content at tid={tid},page={pageNumber} error.')
             return
-        return json.loads(responseData.decode())
+        return utils.autoType(responseData)
 
     @staticmethod
     def replies(tid: int, rid: int, pageNumber: int = 1) -> Any:
@@ -40,17 +41,19 @@ class TiebaAPI:
             '_client_id': utils.randomStamp(),
             '_client_type': 2,
             '_client_version': '9.9.8.32',
-            'kz': tid
+            'kz': tid,
+            'pid': rid,
+            'pn': pageNumber
         }
         signature = utils.generateSignature(urlencode(dataPost))
         dataPost['sign'] = signature
-        responseData: bytes = \
-            network.POST(requestURL,urlencode(dataPost).encode())
+        responseData: dict = network.POST(requestURL,
+                                          urlencode(dataPost).encode())
         if not responseData:
             _API_LOGGER.error(
                 f'Get replies at tid={tid},rid={rid},page={pageNumber} error.')
             return
-        return json.loads(responseData.decode())
+        return utils.autoType(responseData)
 
     @staticmethod
     def formatJson(data: Any) -> str:

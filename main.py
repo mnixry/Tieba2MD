@@ -1,5 +1,7 @@
 from API import TiebaAPI
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
+from logging import basicConfig
+from concurrent.futures.thread import ThreadPoolExecutor
 
 COPYRIGHT = r'''
  _____ _      _            _____ ___  ________ 
@@ -16,7 +18,24 @@ Github address:https://github.com/mnixry/Tieba2MD
 '''
 
 parser = ArgumentParser(description=COPYRIGHT)
-parser.add_argument('tid',metavar='N',type=int,)
+parser.add_argument(
+    'tid',
+    type=int,
+)
+basicConfig(level=0)
 
 if __name__ == "__main__":
-    print(COPYRIGHT)
+    args = parser.parse_args().__dict__
+    with open('test.json', 'wt', encoding='utf-8') as f:
+        r = TiebaAPI.content(args['tid'])
+        ridList = [i['id'] for i in r['post_list']]
+        f.write(TiebaAPI.formatJson(r))
+    with open('test2.json', 'wt', encoding='utf-8') as f:
+        Pool = ThreadPoolExecutor(64)
+        data = Pool.map(lambda x: TiebaAPI.replies(*x),
+                        [(args['tid'], i) for i in ridList])
+        data = list(data)
+        f.write(
+            TiebaAPI.formatJson(
+                {str(ridList[i]): data[i]
+                 for i in range(len(data))}))
