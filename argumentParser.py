@@ -1,4 +1,3 @@
-from API import TiebaAPI
 from argparse import ArgumentParser
 
 COPYRIGHT = r'''
@@ -16,7 +15,6 @@ Github address:https://github.com/mnixry/Tieba2MD
 '''
 
 parser = ArgumentParser(description=COPYRIGHT)
-parser.add_argument('tid',metavar='N',type=int,)
-
-if __name__ == "__main__":
-    print(COPYRIGHT)
+parser.add_argument('tid',metavar='N',type=int)
+parser.add_argument('--debug','-d',action='store_true',default=False)
+parser.add_argument('--without-image','-NI',action='store_false',default=True)
